@@ -8,12 +8,15 @@
 
 ## Services
 - DB
+- Api gateway
 - Frontend React
 - CDN service (User images)
-- OAuth (at least one)
-- Mail service
+- Auth service/Identity provider
+- Mail service/Notifcation service
 - Google maps
-- Backend api
+- User service
+- Ride service
+- Admin service
 
 # Entities
 - User
@@ -58,7 +61,6 @@
 
 
 > Client app uses GoogleMaps for ride estimations. (**Distance Matrix API**) </br>
-> API manages users and rides.  </br>
 > CDN service for user images
 
 
