@@ -1,6 +1,0 @@
-@TaxiWebAPI_HostAddress = http://localhost:5111
-
-GET {{TaxiWebAPI_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

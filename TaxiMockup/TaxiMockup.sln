@@ -5,15 +5,13 @@ VisualStudioVersion = 17.9.34723.18
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{A07B5EB6-E848-4116-A8D0-A826331D98C6}") = "TaxiMockup", "TaxiMockup\TaxiMockup.sfproj", "{DD5DA5AD-8B62-45F9-A380-D6AF687E20D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaxiWebAPI", "TaxiWebAPI\TaxiWebAPI.csproj", "{A989255C-7B28-4A2D-9D4E-C05BFE723D18}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaxiWebAPI", "TaxiWebAPI\TaxiWebAPI.csproj", "{A989255C-7B28-4A2D-9D4E-C05BFE723D18}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaxiRideStateful", "TaxiRideStateful\TaxiRideStateful.csproj", "{293BD4C7-F442-41B2-ACA0-DCECEAF810A6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaxiRideStateful", "TaxiRideStateful\TaxiRideStateful.csproj", "{293BD4C7-F442-41B2-ACA0-DCECEAF810A6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{A3EB7AEF-980A-44D2-A7BD-1B21742436C2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "Common\Common.csproj", "{A3EB7AEF-980A-44D2-A7BD-1B21742436C2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserServiceStateless", "UserServiceStateless\UserServiceStateless.csproj", "{FD304E2A-622C-479A-B17A-D701BAE13C35}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaxiCDN", "TaxiCDN\TaxiCDN.csproj", "{DCA93220-17FD-4EE5-917B-E4A086653A6B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaxiCDN", "TaxiCDN\TaxiCDN.csproj", "{DCA93220-17FD-4EE5-917B-E4A086653A6B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,14 +57,6 @@ Global
 		{A3EB7AEF-980A-44D2-A7BD-1B21742436C2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A3EB7AEF-980A-44D2-A7BD-1B21742436C2}.Release|x64.ActiveCfg = Release|Any CPU
 		{A3EB7AEF-980A-44D2-A7BD-1B21742436C2}.Release|x64.Build.0 = Release|Any CPU
-		{FD304E2A-622C-479A-B17A-D701BAE13C35}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FD304E2A-622C-479A-B17A-D701BAE13C35}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FD304E2A-622C-479A-B17A-D701BAE13C35}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{FD304E2A-622C-479A-B17A-D701BAE13C35}.Debug|x64.Build.0 = Debug|Any CPU
-		{FD304E2A-622C-479A-B17A-D701BAE13C35}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FD304E2A-622C-479A-B17A-D701BAE13C35}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FD304E2A-622C-479A-B17A-D701BAE13C35}.Release|x64.ActiveCfg = Release|Any CPU
-		{FD304E2A-622C-479A-B17A-D701BAE13C35}.Release|x64.Build.0 = Release|Any CPU
 		{DCA93220-17FD-4EE5-917B-E4A086653A6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DCA93220-17FD-4EE5-917B-E4A086653A6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DCA93220-17FD-4EE5-917B-E4A086653A6B}.Debug|x64.ActiveCfg = Debug|Any CPU
