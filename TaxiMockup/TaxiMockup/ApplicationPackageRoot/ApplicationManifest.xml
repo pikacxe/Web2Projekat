@@ -15,10 +15,6 @@
     </EnvironmentOverrides>
   </ServiceManifestImport>
   <ServiceManifestImport>
-    <ServiceManifestRef ServiceManifestName="UserServiceStatelessPkg" ServiceManifestVersion="1.0.0" />
-    <ConfigOverrides />
-  </ServiceManifestImport>
-  <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="TaxiRideStatefulPkg" ServiceManifestVersion="1.0.0" />
     <ConfigOverrides />
   </ServiceManifestImport>

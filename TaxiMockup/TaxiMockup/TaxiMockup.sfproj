@@ -43,7 +43,6 @@
     <ProjectReference Include="..\TaxiWebAPI\TaxiWebAPI.csproj">
       <ServiceLaunchUrl>http://localhost:{ServicePort}/swagger</ServiceLaunchUrl>
     </ProjectReference>
-    <ProjectReference Include="..\UserServiceStateless\UserServiceStateless.csproj" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
   <PropertyGroup>

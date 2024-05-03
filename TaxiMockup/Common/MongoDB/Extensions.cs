@@ -10,6 +10,11 @@ namespace Common.MongoDB
 {
     public static class Extensions
     {
+        /// <summary>
+        /// Register mongoDb service for communicating with database
+        /// </summary>
+        /// <param name="services"></param>
+        /// <returns></returns>
         public static IServiceCollection AddMongo(this IServiceCollection services)
         {
             BsonSerializer.RegisterSerializer(new GuidSerializer(BsonType.String));
