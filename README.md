@@ -1,6 +1,13 @@
 # Project architecture
 
-# Tech stack
+Mock uber like app with microservice architecture where users can request a ride and wait for designated drivers.
+
+
+> - Database is hosted inside docker container
+> - Services use Microsoft Service Fabric distributed systems platform
+> - React app is hosted inside docker containe
+
+## Tech stack
 - Frontend - **React**
 - Backend - **ASP.NET CORE**
 - Service Fabric
@@ -8,17 +15,17 @@
 
 ## Services
 - DB
-- Api gateway
 - Frontend React
 - CDN service (User images)
-- Auth service/Identity provider
-- Mail service/Notifcation service
-- Google maps
+- Auth service / Identity provider
+- Mail service / Notifcation service
+- Google maps / OpenRoutesService
 - User service
 - Ride service
 - Admin service
 
-# Entities
+## Entities
+```
 - User
     - UserId
     - Username
@@ -41,7 +48,8 @@
     - _Created
     - _Verified
     - _Updated
-
+```
+```
 - Ride
     - PassangerId
     - DriverId
@@ -58,9 +66,28 @@
     - Rating
     - _Created
     - _Updated
+```
 
 
-> Client app uses GoogleMaps for ride estimations. (**Distance Matrix API**) </br>
-> CDN service for user images
+## Endpoints
+
+- [ ] /login
+- [ ] /register
+    - [ ] /register/oauth
+- [ ] /admin
+    - [ ] /verify
+    - [ ] /unverified
+- [ ] /users
+    - [ ] /
+    - [ ] /:id
+    - [ ] /state
+- [ ] /ride
+    - [ ] /
+    - [ ] /request
+    - [ ] /confirm
+    - [ ] /pending
+    - [ ] /history
+    - [ ] /finished
+
 
 
