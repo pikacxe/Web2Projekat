@@ -1,4 +1,6 @@
-﻿using Common.Settings;
+﻿using Common.Entities;
+using Common.Repository;
+using Common.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
@@ -29,6 +31,17 @@ namespace Common.MongoDB
                 return mongoClient.GetDatabase(serviceSettings.ServiceName);
             });
 
+            return services;
+        }
+
+        public static IServiceCollection AddMongoRepository<T>(this IServiceCollection services, string collectionName)
+            where T : IEntity
+        {
+            services.AddSingleton<IRepository<T>>(ServiceProvider =>
+            {
+                var database = ServiceProvider.GetService<IMongoDatabase>();
+                return new MongoRepository<T>(database, collectionName);
+            });
             return services;
         }
     }

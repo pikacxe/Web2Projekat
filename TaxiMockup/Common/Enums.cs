@@ -8,23 +8,20 @@ namespace Common
 {
     public enum UserState
     {
-        Created,
-        Requested,
-        Activated,
+        Default,
         Verified,
         Denied
     }
 
     public enum UserType
     {
-        Admin,
         User,
-        Driver
+        Driver,
+        Admin
     }
 
     public enum RideState
     {
-        None,
         Requested,
         Confirmed,
         Pending,

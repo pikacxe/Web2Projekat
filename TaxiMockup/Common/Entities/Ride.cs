@@ -15,11 +15,14 @@ namespace Common.Entities
         public string? EndDestination { get; set; }
 
         public double? Price { get; set; }
-        public TimeSpan EstRideDuration { get; set; }
         public TimeSpan RideDuration { get; set; }
         public TimeSpan DriverETA { get; set; }
         public RideState RideState { get; set; }
         public int Rating { get; set; }
+
+        public DateTimeOffset? _CreatedAt { get; set; }
+        public DateTimeOffset? _UpdatedAt { get; set; }
+        public DateTimeOffset? _FinishedAt { get; set; }
 
     }
 }
