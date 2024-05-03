@@ -35,59 +35,64 @@ Mock uber like app with microservice architecture where users can request a ride
     - DoB
     - Address
     - UserType
-        - Administrator
         - User
         - Driver
+        - Administrator
     - UserPicture
     - State
-        - Created
-        - Activated
-        - Requested
+        - Default
         - Verified
         - Denied
-    - _Created
-    - _Verified
-    - _Updated
+    - _CreatedAt
+    - _VerifiedAt
+    - _UpdatedAt
 ```
 ```
 - Ride
+    - RideId
     - PassangerId
     - DriverId
     - Start Destination
     - End Destination
     - Price
-    - Estimated ride duration
-    - Esitmated driver arrival
+    - Ride duration
+    - Driver ETA
     - State
-        - Pending
+        - Requested
         - Confirmed
+        - Pending
         - InProgress
         - Finished
     - Rating
-    - _Created
-    - _Updated
+    - _CreatedAt
+    - _UpdatedAt
+    - _FinishedAt
 ```
 
 
 ## Endpoints
 
-- [ ] /login
-- [ ] /register
-    - [ ] /register/oauth
-- [ ] /admin
-    - [ ] /verify
-    - [ ] /unverified
 - [ ] /users
+    - [X] /
+    - [X] /:id
+    - [X] /:id/verify
+    - [ ] /login
+    - [X] /register
+        - [ ] /register/oauth
+    - [X] /unverified
+    - [X] /state
+- [ ] /rides
     - [ ] /
     - [ ] /:id
-    - [ ] /state
-- [ ] /ride
-    - [ ] /
     - [ ] /request
     - [ ] /confirm
     - [ ] /pending
     - [ ] /history
     - [ ] /finished
 
-
+### TODO
+- [ ] add JWT auth
+- [ ] implement Rides service
+- [ ] add auth to mongoDb
+- [ ] implement CDN service
 
