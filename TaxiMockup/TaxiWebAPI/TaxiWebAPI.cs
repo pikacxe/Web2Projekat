@@ -12,11 +12,11 @@ using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Microsoft.ServiceFabric.Data;
 using System.Text;
-using Common.MongoDB;
 using Common.Repository;
 using Common.Entities;
 using MongoDB.Driver;
 using System.Text.Json.Serialization;
+using Common.MongoDB;
 
 namespace TaxiWebAPI
 {
@@ -50,9 +50,15 @@ namespace TaxiWebAPI
                                     .UseContentRoot(Directory.GetCurrentDirectory())
                                     .UseServiceFabricIntegration(listener, ServiceFabricIntegrationOptions.None)
                                     .UseUrls(url);
+                         // Load configuration from appsettings.json
+                        var configuration = new ConfigurationBuilder()
+                            .SetBasePath(Directory.GetCurrentDirectory())
+                            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                            .Build();
                         // Register mongoDb service
-                        builder.Services.AddMongo();
+                        builder.Services.AddMongo(configuration);
                         builder.Services.AddMongoRepository<User>("User");
+                        builder.Services.AddRideDataService(configuration);
                         builder.Services.AddControllers()
                                         .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
                         builder.Services.AddEndpointsApiExplorer();
