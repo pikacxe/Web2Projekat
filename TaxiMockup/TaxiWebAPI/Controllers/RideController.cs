@@ -1,15 +1,6 @@
-﻿using Common;
-using Common.Entities;
-using Common.Repository;
-using Common.DTO;
-using Microsoft.AspNetCore.Http;
+﻿using Common.DTO;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.ServiceFabric.Services.Remoting.Client;
-using Microsoft.ServiceFabric.Services.Remoting;
 using Contracts;
-using Microsoft.ServiceFabric.Services.Client;
-using System.Linq.Expressions;
-using ZstdSharp.Unsafe;
 
 namespace TaxiWebAPI.Controllers
 {

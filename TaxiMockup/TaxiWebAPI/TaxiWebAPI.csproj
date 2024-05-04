@@ -8,6 +8,7 @@
     <ServerGarbageCollection>True</ServerGarbageCollection>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>True</SelfContained>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
+    <ProjectReference Include="..\Contracts\Contracts.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,9 +2,7 @@
 using Common.DTO;
 using Common.Entities;
 using Common.Repository;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Runtime.CompilerServices;
 
 namespace TaxiWebAPI.Controllers
 {

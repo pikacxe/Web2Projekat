@@ -9,10 +9,20 @@
     <ServerGarbageCollection>True</ServerGarbageCollection>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>True</SelfContained>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
     <PackageReference Include="Microsoft.ServiceFabric.Services" Version="7.1.1951" />
+    <PackageReference Include="Microsoft.ServiceFabric.Services.Remoting" Version="7.1.1951" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Contracts\Contracts.csproj" />
   </ItemGroup>
 
 </Project>
