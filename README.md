@@ -5,24 +5,19 @@ Mock uber like app with microservice architecture where users can request a ride
 
 > - Database is hosted inside docker container
 > - Services use Microsoft Service Fabric distributed systems platform
-> - React app is hosted inside docker containe
+> - React app is hosted inside docker container
 
 ## Tech stack
 - Frontend - **React**
-- Backend - **ASP.NET CORE**
+- Backend - **.NET 8.0**
 - Service Fabric
-- MS SQL
+- MongoDB
 
 ## Services
-- DB
-- Frontend React
-- CDN service (User images)
-- Auth service / Identity provider
-- Mail service / Notifcation service
-- Google maps / OpenRoutesService
-- User service
-- Ride service
-- Admin service
+- API gateway - web stateless
+- User data service - stateless
+- Ride data service - stateful
+- CDN service (User images) - web statless
 
 ## Entities
 ```
@@ -41,6 +36,7 @@ Mock uber like app with microservice architecture where users can request a ride
     - UserPicture
     - State
         - Default
+        - Unverified
         - Verified
         - Denied
     - _CreatedAt
@@ -50,7 +46,7 @@ Mock uber like app with microservice architecture where users can request a ride
 ```
 - Ride
     - RideId
-    - PassangerId
+    - PassengerId
     - DriverId
     - Start Destination
     - End Destination
@@ -75,25 +71,32 @@ Mock uber like app with microservice architecture where users can request a ride
 - [ ] /users
     - [X] /
     - [X] /:id
-    - [X] /:id/verify
-    - [ ] /login
-    - [X] /register
-        - [ ] /register/oauth
     - [X] /unverified
-    - [X] /state
+    - [X] /login
+    - [X] /register
+        - [ ] /oauth
+    - [X] /:id/state
+    - [X] /update
+    - [X] /delete
+    - [X] /:id/verify
+    - [X] /:id/ban
 - [X] /rides
     - [X] /
-    - [X] /request
-    - [X] /confirm
     - [X] /pending
-    - [X] /history
-    - [X] /finished
+    - [X] /:id/history
+    - [X] /:id/finished
+    - [X] /request
+    - [X] /accept
+    - [X] /finish
 
-### TODO
+## TODO
 - [ ] add JWT auth
-- [X] implement Rides service
+    - [ ] add RBAC
 - [ ] implement CDN service
-- [ ] add auth to mongoDb
-- [ ] implement CDN service
-- [ ] add model and dto validation
+- [X] implement Ride data service
+    - [ ] implement data validation
+- [X] implement User data service
+    - [ ] implement data validation
+- [X] add dto validation
+- [ ] secure database connection
 
