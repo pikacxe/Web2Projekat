@@ -43,10 +43,9 @@ namespace TaxiWebAPI
                             .SetBasePath(Directory.GetCurrentDirectory())
                             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                             .Build();
-                        // Register mongoDb service
-                        builder.Services.AddMongo(configuration);
-                        builder.Services.AddMongoRepository<User>("User");
+                        // Register data services
                         builder.Services.AddRideDataService(configuration);
+                        builder.Services.AddUserDataService(configuration);
                         builder.Services.AddControllers()
                                         .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
                         builder.Services.AddEndpointsApiExplorer();

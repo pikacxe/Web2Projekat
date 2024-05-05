@@ -89,7 +89,7 @@ namespace TaxiRideStateful
             Ride newRide = new Ride
             {
                 Id = Guid.NewGuid(),
-                PassengerId = proposedRide.passengerId,
+                PassengerId = proposedRide.PassengerId,
                 StartDestination = proposedRide.StartDestination,
                 EndDestination = proposedRide.EndDestination,
                 Price = proposedRide.Price,
@@ -122,7 +122,7 @@ namespace TaxiRideStateful
                 throw new KeyNotFoundException(nameof(acceptRideDTO));
             }
             Ride acceptedRide = (Ride)ride;
-            acceptedRide.DriverId = acceptRideDTO.driverID;
+            acceptedRide.DriverId = acceptRideDTO.DriverID;
             acceptedRide.DriverETA = acceptedRide.DriverETA;
             acceptedRide.RideState = RideState.InProgress;
             await _repo.UpdateAsync(acceptedRide);

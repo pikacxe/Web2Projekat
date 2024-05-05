@@ -2,7 +2,9 @@
 using Common.DTO;
 using Common.Entities;
 using Common.Repository;
+using Contracts;
 using Microsoft.AspNetCore.Mvc;
+using ZstdSharp.Unsafe;
 
 namespace TaxiWebAPI.Controllers
 {
@@ -11,31 +13,34 @@ namespace TaxiWebAPI.Controllers
     public class UserController : ControllerBase
     {
         private readonly ILogger<UserController> _logger;
-        private readonly IRepository<User> _repository;
+        private readonly IUserDataService _proxy;
 
-        public UserController(ILogger<UserController> logger, IRepository<User> repository)
+        public UserController(ILogger<UserController> logger, IUserDataService proxy)
         {
             _logger = logger;
-            _repository = repository;
+            _proxy = proxy;
         }
 
         // GET /users/
         [HttpGet]
         public async Task<ActionResult> Get()
         {
-            return Ok(await _repository.GetAllAsync());
+            return Ok(await _proxy.GetAllAsync());
         }
 
         // GET /users/:id
         [HttpGet("{id}")]
         public async Task<ActionResult> Get(Guid id)
         {
-            var user = await _repository.GetAsync(id);
-            if (user == null)
+            try
             {
-                return NotFound("User not found");
+                var user = await _proxy.GetAsync(id);
+                return Ok(user);
             }
-            return Ok(user);
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // GET /users/unverified
@@ -43,7 +48,7 @@ namespace TaxiWebAPI.Controllers
         [Route("unverified")]
         public async Task<ActionResult> UnverifiedUsers()
         {
-            return Ok(await _repository.GetAllAsync(x => x.UserType == UserType.Driver && x.UserState == UserState.Default));
+            return Ok(await _proxy.GetAllUnverifiedAsync());
         }
 
         // POST /users/login
@@ -51,14 +56,17 @@ namespace TaxiWebAPI.Controllers
         [Route("login")]
         public async Task<ActionResult> Login(UserLoginDTO login)
         {
-            var user = await _repository.GetAsync(x => x.Username == login.Username);
-            if (user == null)
+            try
             {
-                return NotFound();
-            }
-            // TODO: verify password
+                await _proxy.ValidateLoginParamsAsync(login);
+                // TODO: get JWT token
+                return Ok("Debug token");
 
-            return Ok("temp token");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Failed to login: {ex.Message}");
+            }
         }
 
         // GET /users/:id/state
@@ -66,57 +74,74 @@ namespace TaxiWebAPI.Controllers
         [Route("/state")]
         public async Task<ActionResult> GetUserState(Guid id)
         {
-            var user = await _repository.GetAsync(x => x.Id == id);
-            if(user == null)
+            try
             {
-                return NotFound();
+                var state = await _proxy.GetUserStateAsync(id);
+                return Ok(state);
             }
-            return Ok(((User)user).UserState);
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
 
         // POST /users/register
         [HttpPost]
         [Route("register")]
-        public async Task<ActionResult> Register(User user)
+        public async Task<ActionResult> Register(RegisterUserDTO registerUserDTO)
         {
-            if (user == null)
-            {
-                return BadRequest();
-            }
-            await _repository.CreateAsync(user);
+
+            await _proxy.RegisterNewUserAsync(registerUserDTO);
             return Ok();
+
         }
 
-        // PUT /users/:id
-        [HttpPut("{id}")]
-        public async Task<ActionResult> Put(Guid id, User user)
+        // PUT /users/update
+        [HttpPut]
+        [Route("update")]
+        public async Task<ActionResult> UpdateUser(UserInfoDTO userInfoDTO)
         {
             try
             {
-                await _repository.UpdateAsync(user);
+                await _proxy.UpdateUserAsync(userInfoDTO);
                 return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.LogError($"[ERROR] {ex.Message}");
+                return BadRequest($"Update failed: {ex.Message}");    
             }
-            return BadRequest();
         }
-        
+
         // PATCH /users/:id/verify
         [Route("{id}/verify")]
         [HttpPatch]
         public async Task<ActionResult> VerifyUser(Guid id)
         {
-            var user = await _repository.GetAsync(x => x.Id == id);
-            if(user == null)
+            try
             {
-                return BadRequest();
+                await _proxy.VerifyUserAsync(id);
             }
-            User updated = (User)user;
-            updated.UserState = UserState.Verified;
-            await _repository.UpdateAsync(updated);
+            catch(Exception ex)
+            {
+                return BadRequest($"{ex.Message}");
+            }
+            return NoContent();
+        }
+
+        // PATCH /users/:id/verify
+        [Route("{id}/ban")]
+        [HttpPatch]
+        public async Task<ActionResult> BanUser(Guid id)
+        {
+            try
+            {
+                await _proxy.BanUserAsync(id);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"{ex.Message}");
+            }
             return NoContent();
         }
 
@@ -125,7 +150,7 @@ namespace TaxiWebAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(Guid id)
         {
-            await _repository.DeleteAsync(id);
+            await _proxy.DeleteUserAsync(id);
             return Ok();
         }
 

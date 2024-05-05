@@ -26,7 +26,7 @@ namespace Common.MongoDB
             var mongoDbSettings = configuration.GetSection(nameof(MongoDBSettings)).Get<MongoDBSettings>();
             if(serviceSettings == null || mongoDbSettings == null) 
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(configuration));
             }
             var mongoClient = new MongoClient(mongoDbSettings.ConnectionString);
             var database = mongoClient.GetDatabase(serviceSettings.ServiceName);
@@ -52,7 +52,7 @@ namespace Common.MongoDB
                 var database = ServiceProvider.GetService<IMongoDatabase>();
                 if(database == null)
                 {
-                    throw new ArgumentNullException(nameof(database));
+                    throw new FieldAccessException(nameof(database));
                 }
                 return new MongoRepository<T>(database, collectionName);
             });

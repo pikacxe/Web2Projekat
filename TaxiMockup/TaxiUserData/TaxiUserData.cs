@@ -23,7 +23,7 @@ namespace TaxiUserData
         }
 
         #region User service methods
-        public async Task ChangeUserPassword(UserPasswordChangeDTO userPasswordChangeDTO)
+        public async Task ChangeUserPasswordAsync(UserPasswordChangeDTO userPasswordChangeDTO)
         {
             var existingUser = await _repo.GetAsync(userPasswordChangeDTO.UserId) as User;
             if (existingUser == null)
@@ -33,30 +33,34 @@ namespace TaxiUserData
             // TODO: Better password validation with hashing (bcrypt?)
             if (existingUser.Password != userPasswordChangeDTO.OldPassword)
             {
-                throw new Exception("Incorrect old password!");
+                throw new ArgumentException("Incorrect old password!");
             }
             existingUser.Password = userPasswordChangeDTO.NewPassword;
+            existingUser._UpdatedAt = DateTimeOffset.UtcNow;
             await _repo.UpdateAsync(existingUser);
         }
 
-        public async Task<bool> ValidateLoginParams(UserLoginDTO userLoginDTO)
+        public async Task ValidateLoginParamsAsync(UserLoginDTO userLoginDTO)
         {
             var existingUser = await _repo.GetAsync(x => x.Email == userLoginDTO.Email || x.Username == userLoginDTO.Username) as User;
             if (existingUser == null)
             {
-                throw new KeyNotFoundException("User not found");
+                throw new KeyNotFoundException("User not found!");
             }
             // TODO: Better password validation with hashing (bcrypt?)
-            if(existingUser.Password == userLoginDTO.Password)
+            if(existingUser.Password != userLoginDTO.Password)
             {
-                return true;
+                throw new ArgumentException("Incorrect password!");
             }
-            return false;
         }
 
         public async Task<IEnumerable<UserInfoDTO>> GetAllAsync()
         {
            var users = await _repo.GetAllAsync();
+            if(users.Count == 0)
+            {
+                return [];
+            }
             List<UserInfoDTO> result = new List<UserInfoDTO>();
             foreach (var user in users)
             {
@@ -68,6 +72,10 @@ namespace TaxiUserData
         public async Task<IEnumerable<UserInfoDTO>> GetAllUnverifiedAsync()
         {
             var users = await _repo.GetAllAsync(x => x.UserState == UserState.Unverified);
+            if(users.Count == 0)
+            {
+                return [];
+            }
             List<UserInfoDTO> result = new List<UserInfoDTO>();
             foreach (var user in users)
             {
@@ -86,7 +94,7 @@ namespace TaxiUserData
             return user.AsInfoDTO();
         }
 
-        public async Task<UserStateDTO> GetUserState(Guid id)
+        public async Task<UserStateDTO> GetUserStateAsync(Guid id)
         {
             var existingUser = await _repo.GetAsync(id) as User;
             if (existingUser == null)
@@ -101,7 +109,7 @@ namespace TaxiUserData
             return userStateDTO;
         }
 
-        public async Task RegisterNewUser(RegisterUserDTO registerUserDTO)
+        public async Task RegisterNewUserAsync(RegisterUserDTO registerUserDTO)
         {
             // TODO: validate data
             User user = new User
@@ -113,15 +121,37 @@ namespace TaxiUserData
                 Address = registerUserDTO.Address,
                 DateOfBirth = registerUserDTO.DateOfBirth,
                 Fullname = registerUserDTO.Fullname,
-                UserPictures = registerUserDTO.UserPicture,
+                UserPicture = registerUserDTO.UserPicture,
                 UserType = registerUserDTO.UserType,
                 UserState = registerUserDTO.UserType == UserType.Driver ? UserState.Unverified : UserState.Default,
                 _CreatedAt = DateTimeOffset.UtcNow
             };
             await _repo.CreateAsync(user);
         }
+        public async Task UpdateUserAsync(UserInfoDTO userDTO)
+        {
+            var existingUser = await _repo.GetAsync(userDTO.Id) as User;
+            if (existingUser == null)
+            {
+                throw new KeyNotFoundException("User not found");
+            }
+            existingUser.Username = userDTO.Username;
+            existingUser.Email = userDTO.Email;
+            existingUser.Address = userDTO.Address;
+            existingUser.DateOfBirth = userDTO.DateOfBirth;
+            existingUser.Fullname = userDTO.Fullname;
+            existingUser.UserPicture = userDTO.UserPicture;
+            existingUser._UpdatedAt = DateTimeOffset.UtcNow;
+            await _repo.UpdateAsync(existingUser);
+        }
 
-        public async Task VerifyUser(Guid userId)
+        public async Task DeleteUserAsync(Guid id)
+        {
+            await _repo.DeleteAsync(id);
+        }
+
+
+        public async Task VerifyUserAsync(Guid userId)
         {
             var existingUser = await _repo.GetAsync(userId) as User;
             if (existingUser == null)
@@ -130,9 +160,10 @@ namespace TaxiUserData
             }
             existingUser.UserState = UserState.Verified;
             existingUser._VerifiedAt = DateTimeOffset.UtcNow;
+            existingUser._UpdatedAt = DateTimeOffset.UtcNow;
             await _repo.UpdateAsync(existingUser);
         }
-        public async Task BanUser(Guid userId)
+        public async Task BanUserAsync(Guid userId)
         {
             var existingUser = await _repo.GetAsync(userId) as User;
             if (existingUser == null)
@@ -140,6 +171,7 @@ namespace TaxiUserData
                 throw new KeyNotFoundException("User not found");
             }
             existingUser.UserState = UserState.Denied;
+            existingUser._UpdatedAt = DateTimeOffset.UtcNow;
             await _repo.UpdateAsync(existingUser);
         }
         #endregion

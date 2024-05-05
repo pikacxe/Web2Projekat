@@ -8,7 +8,8 @@ namespace Contracts
         /// <summary>
         /// Gets user by user id
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="id"></param>        
+        /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
         Task<UserInfoDTO> GetAsync(Guid id);
         /// <summary>
@@ -25,37 +26,58 @@ namespace Contracts
         /// Verrifies user
         /// </summary>
         /// <param name="userId">Id of user to verify</param>
+        /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task VerifyUser(Guid userId);
+        Task VerifyUserAsync(Guid userId);
         /// <summary>
         /// Bans user
         /// </summary>
         /// <param name="userId">Id of user to ban</param>
+        /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task BanUser(Guid userId);
+        Task BanUserAsync(Guid userId);
         /// <summary>
         /// Validates login parameteres
         /// </summary>
         /// <param name="userLoginDTO">Login parameters</param>
+        /// <exception cref="ArgumentException"/>
+        /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task<bool> ValidateLoginParams(UserLoginDTO userLoginDTO);
+        Task ValidateLoginParamsAsync(UserLoginDTO userLoginDTO);
         /// <summary>
         /// Registers new user
         /// </summary>
         /// <param name="registerUserDTO">Registration parameters</param>
         /// <returns></returns>
-        Task RegisterNewUser(RegisterUserDTO registerUserDTO);
+        Task RegisterNewUserAsync(RegisterUserDTO registerUserDTO);
         /// <summary>
         /// Gets user state for given user
         /// </summary>
         /// <param name="id"></param>
+        /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task<UserStateDTO> GetUserState(Guid id);
+        Task<UserStateDTO> GetUserStateAsync(Guid id);
         /// <summary>
         /// Changes user password
         /// </summary>
         /// <param name="userPasswordChangeDTO"></param>
+        /// <exception cref="ArgumentException"/>
+        /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task ChangeUserPassword(UserPasswordChangeDTO userPasswordChangeDTO);
+        Task ChangeUserPasswordAsync(UserPasswordChangeDTO userPasswordChangeDTO);
+        /// <summary>
+        /// Updates user
+        /// </summary>
+        /// <param name="userDTO"></param>
+        /// <exception cref="ArgumentException"/>
+        /// <exception cref="KeyNotFoundException"/>
+        /// <returns></returns>
+        Task UpdateUserAsync(UserInfoDTO userDTO);
+        /// <summary>
+        /// Deletes user
+        /// </summary>
+        /// <param name="id">Id of user to delete</param>
+        /// <returns></returns>
+        Task DeleteUserAsync(Guid id);
     }
 }

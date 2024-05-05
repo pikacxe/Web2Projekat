@@ -22,5 +22,20 @@ namespace TaxiWebAPI
             });
             return services;
         }
+
+        public static IServiceCollection AddUserDataService(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddSingleton(serviceProvider =>
+            {
+                var serviceSettings = configuration.GetSection(nameof(UserDataServiceSettings)).Get<UserDataServiceSettings>();
+                if (serviceSettings == null)
+                {
+                    throw new ArgumentNullException(nameof(serviceSettings));
+                }
+                IUserDataService proxy = ServiceProxy.Create<IUserDataService>(new Uri(serviceSettings.ConnectionString));
+                return proxy;
+            });
+            return services;
+        }
     }
 }

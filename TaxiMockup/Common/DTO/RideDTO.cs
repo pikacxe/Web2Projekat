@@ -16,7 +16,7 @@ namespace Common.DTO
         [DataMember]
         public Guid RideId { get; set; } = Guid.Empty;
         [DataMember]
-        public Guid passengerId { get; set; }
+        public Guid PassengerId { get; set; }
         [DataMember]
         public string? StartDestination { get; set; }
         [DataMember]
@@ -65,7 +65,7 @@ namespace Common.DTO
         [DataMember]
         public Guid RideId { get; set; }
         [DataMember]
-        public Guid driverID { get; set; }
+        public Guid DriverID { get; set; }
         [DataMember]
         public double DriverETA { get; set; }
     }

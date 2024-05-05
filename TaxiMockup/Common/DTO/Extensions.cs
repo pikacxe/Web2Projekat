@@ -31,7 +31,7 @@ namespace Common.DTO
             Address = user.Address,
             DateOfBirth = user.DateOfBirth,
             Fullname = user.Fullname,
-            UserPictures = user.UserPictures,
+            UserPicture = user.UserPicture,
             UserState = user.UserState,
             UserType = user.UserType
 
