@@ -7,7 +7,7 @@ namespace Common.DTO
         public static CompletedRideInfoDTO AsInfoDTO(this Ride ride) => new CompletedRideInfoDTO
         {
             RideId = ride.Id,
-            UserId = ride.PassengerId,
+            PassengerId = ride.PassengerId,
             DriverId = ride.DriverId,
             StartDestination = ride.StartDestination,
             EndDestination = ride.EndDestination,

@@ -7,10 +7,10 @@ namespace Common.DTO
     public class UserLoginDTO
     {
         [DataMember]
-        [Required(AllowEmptyStrings =false, ErrorMessage ="Email is required!")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Email is required!")]
         public string? Email { get; set; }
         [DataMember]
-        [Required(AllowEmptyStrings =false, ErrorMessage ="Password is required!")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Password is required!")]
         public string? Password { get; set; }
     }
 
@@ -33,13 +33,13 @@ namespace Common.DTO
         [Required(AllowEmptyStrings = false, ErrorMessage = "Picture is required!")]
         public string? UserPicture { get; set; }
         [DataMember]
-        [Required(ErrorMessage ="Date of birth is required!")]
+        [Required(ErrorMessage = "Date of birth is required!")]
         public DateTimeOffset? DateOfBirth { get; set; }
         [DataMember]
-        [Required(ErrorMessage ="Address is required!")]
+        [Required(ErrorMessage = "Address is required!")]
         public string? Address { get; set; }
         [DataMember]
-        [Range(0,1)]
+        [Range(0, 1)]
         public UserType UserType { get; set; }
     }
 
@@ -47,7 +47,7 @@ namespace Common.DTO
     public class UserStateDTO
     {
         [DataMember]
-        [Required(ErrorMessage ="User Id is required!")]
+        [Required(ErrorMessage = "User Id is required!")]
         public Guid UserId { get; set; }
         [DataMember]
         public UserState UserState { get; set; }
@@ -57,14 +57,14 @@ namespace Common.DTO
     public class UserPasswordChangeDTO
     {
         [DataMember]
-        [Required(ErrorMessage ="User Id is required!")]
+        [Required(ErrorMessage = "User Id is required!")]
         public Guid UserId { get; set; }
         [DataMember]
-        [Required(AllowEmptyStrings =false, ErrorMessage ="Old password is required")]
-        public string? OldPassword { get; set; }    
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Old password is required")]
+        public string? OldPassword { get; set; }
         [DataMember]
-        [Required(AllowEmptyStrings =false, ErrorMessage ="New password is required")]
-        public string? NewPassword { get; set;}
+        [Required(AllowEmptyStrings = false, ErrorMessage = "New password is required")]
+        public string? NewPassword { get; set; }
     }
 
     [DataContract]
