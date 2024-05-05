@@ -7,9 +7,6 @@ namespace Common.DTO
     public class UserLoginDTO
     {
         [DataMember]
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Username is required!")]
-        public string? Username { get; set; }
-        [DataMember]
         [Required(AllowEmptyStrings =false, ErrorMessage ="Email is required!")]
         public string? Email { get; set; }
         [DataMember]

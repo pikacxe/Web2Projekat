@@ -42,7 +42,7 @@ namespace TaxiUserData
 
         public async Task ValidateLoginParamsAsync(UserLoginDTO userLoginDTO)
         {
-            var existingUser = await _repo.GetAsync(x => x.Email == userLoginDTO.Email || x.Username == userLoginDTO.Username) as User;
+            var existingUser = await _repo.GetAsync(x => x.Email == userLoginDTO.Email) as User;
             if (existingUser == null)
             {
                 throw new KeyNotFoundException("User not found!");
