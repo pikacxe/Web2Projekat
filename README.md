@@ -90,13 +90,15 @@ Mock uber like app with microservice architecture where users can request a ride
     - [X] /finish
 
 ## TODO
-- [ ] add JWT auth
+- [ ] add JWT auth / Identity service
     - [ ] add RBAC
-- [ ] implement CDN service
+- [X] implement CDN service
 - [X] implement Ride data service
     - [ ] implement data validation
 - [X] implement User data service
     - [ ] implement data validation
 - [X] add dto validation
 - [ ] secure database connection
+- [ ] add retry policy, rate limiters and circuit breaker
+
 
