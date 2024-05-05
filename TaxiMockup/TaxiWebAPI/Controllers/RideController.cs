@@ -17,6 +17,7 @@ namespace TaxiWebAPI.Controllers
             _proxy = proxy;
         }
 
+        // GET rides/
         [HttpGet]
         public async Task<ActionResult> Get()
         {
@@ -24,6 +25,7 @@ namespace TaxiWebAPI.Controllers
             return Ok(rides);
         }
 
+        // GET rides/pending
         [HttpGet]
         [Route("pending")]
         public async Task<ActionResult> GetPending()
@@ -32,6 +34,7 @@ namespace TaxiWebAPI.Controllers
             return Ok(rides);
         }
 
+        // GET /rides/:id/history
         [HttpGet]
         [Route("{id}/history")]
         public async Task<ActionResult> GetCompletedRidesForUser(Guid id)
@@ -40,6 +43,7 @@ namespace TaxiWebAPI.Controllers
             return Ok(rides);
         }
 
+        // GET /rides/:id/finished
         [HttpGet]
         [Route("{id}/finished")]
         public async Task<ActionResult> GetCompletedRidesForDriver(Guid id)
@@ -48,6 +52,7 @@ namespace TaxiWebAPI.Controllers
             return Ok(rides);
         }
 
+        // POST /rides/request
         [HttpPost]
         [Route("request")]
         public async Task<ActionResult> RequestRide(ProposedRideDTO proposedRide)
@@ -63,6 +68,7 @@ namespace TaxiWebAPI.Controllers
             return NoContent();
         }
 
+        // PATCH /rides/accept
         [HttpPatch]
         [Route("accept")]
         public async Task<ActionResult> AcceptRide(AcceptRideDTO acceptedRide)
@@ -78,6 +84,7 @@ namespace TaxiWebAPI.Controllers
             return Ok();
         }
 
+        // PATCH /rides/finish
         [HttpPatch]
         [Route("finish")]
         public async Task<ActionResult> FinishRide(FinishedRideDTO finishedRideDTO)

@@ -71,7 +71,7 @@ namespace TaxiWebAPI.Controllers
 
         // GET /users/:id/state
         [HttpGet]
-        [Route("/state")]
+        [Route("{id}/state")]
         public async Task<ActionResult> GetUserState(Guid id)
         {
             try
@@ -129,7 +129,7 @@ namespace TaxiWebAPI.Controllers
             return NoContent();
         }
 
-        // PATCH /users/:id/verify
+        // PATCH /users/:id/ban
         [Route("{id}/ban")]
         [HttpPatch]
         public async Task<ActionResult> BanUser(Guid id)
