@@ -3,6 +3,7 @@
     public enum UserState
     {
         Default,
+        Unverified,
         Verified,
         Denied
     }

@@ -23,5 +23,19 @@ namespace Common.DTO
             EndDestination = ride.EndDestination
         };
 
+        public static UserInfoDTO AsInfoDTO(this User user) => new UserInfoDTO
+        {
+            Id = user.Id,
+            Username = user.Username,
+            Email = user.Email,
+            Address = user.Address,
+            DateOfBirth = user.DateOfBirth,
+            Fullname = user.Fullname,
+            UserPictures = user.UserPictures,
+            UserState = user.UserState,
+            UserType = user.UserType
+
+        };
+
     }
 }
