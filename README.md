@@ -15,9 +15,10 @@ Mock uber like app with microservice architecture where users can request a ride
 
 ## Services
 - API gateway - web stateless
-- User data service - stateless
+- User data service - stateful
 - Ride data service - stateful
 - CDN service (User images) - web statless
+- Mail service - stateless (TBD)
 
 ## Entities
 ```
@@ -98,7 +99,11 @@ Mock uber like app with microservice architecture where users can request a ride
 - [X] implement User data service
     - [ ] implement data validation
 - [X] add dto validation
-- [ ] secure database connection
-- [ ] add retry policy, rate limiters and circuit breaker
+- [ ] improve error message propagation
+- [ ] refactor service proxy creation
+- [ ] add partition key resolver for stateful service
+- [ ] implement database backup for stateful service's state
+- [ ] update cdn service to regular stateless from web stateless ?? (user mail service as regular stateless)
+- [ ] add mail service
 
 
