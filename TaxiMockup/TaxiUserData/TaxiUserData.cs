@@ -7,203 +7,290 @@ using Common.Repository;
 using Common.Entities;
 using Common.DTO;
 using Common;
+using Microsoft.ServiceFabric.Data.Collections;
+using Microsoft.ServiceFabric.Data;
+using MongoDB.Driver.Core.Authentication;
+using System.Runtime.InteropServices;
 
 namespace TaxiUserData
 {
     /// <summary>
     /// An instance of this class is created for each service instance by the Service Fabric runtime.
     /// </summary>
-    internal sealed class TaxiUserData : StatelessService, IUserDataService
+    internal sealed class TaxiUserData : StatefulService, IUserDataService
     {
-        private readonly IRepository<User> _repo; 
-        public TaxiUserData(StatelessServiceContext context, IRepository<User> repo)
+        private readonly IRepository<User> _repo;
+        private readonly string _dictName = "users";
+        public TaxiUserData(StatefulServiceContext context)
             : base(context)
         {
-            _repo = repo;
         }
 
         #region User service methods
         public async Task ChangeUserPasswordAsync(UserPasswordChangeDTO userPasswordChangeDTO)
         {
-            var existingUser = await _repo.GetAsync(userPasswordChangeDTO.UserId) as User;
-            if (existingUser == null)
+            var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
+            using (ITransaction tx = StateManager.CreateTransaction())
             {
-                throw new KeyNotFoundException("User not found");
+                var user = await users.TryGetValueAsync(tx, userPasswordChangeDTO.UserId);
+                if (user.HasValue)
+                {
+                    var existingUser = user.Value;
+                    // TODO: Better password validation with hashing (bcrypt?)
+                    if (existingUser.Password != userPasswordChangeDTO.OldPassword)
+                    {
+                        throw new ArgumentException("Incorrect old password!");
+                    }
+                    existingUser.Password = userPasswordChangeDTO.NewPassword;
+                    existingUser._UpdatedAt = DateTimeOffset.UtcNow;
+                    await users.AddOrUpdateAsync(tx, existingUser.Id, existingUser, (u1, u2) => u2);
+                    await tx.CommitAsync();
+                }
+                else
+                {
+                    throw new KeyNotFoundException("User not found");
+                }
             }
-            // TODO: Better password validation with hashing (bcrypt?)
-            if (existingUser.Password != userPasswordChangeDTO.OldPassword)
-            {
-                throw new ArgumentException("Incorrect old password!");
-            }
-            existingUser.Password = userPasswordChangeDTO.NewPassword;
-            existingUser._UpdatedAt = DateTimeOffset.UtcNow;
-            await _repo.UpdateAsync(existingUser);
         }
 
         public async Task ValidateLoginParamsAsync(UserLoginDTO userLoginDTO)
         {
-            var existingUser = await _repo.GetAsync(x => x.Email == userLoginDTO.Email) as User;
-            if (existingUser == null)
+            var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
+            using (ITransaction tx = StateManager.CreateTransaction())
             {
-                throw new KeyNotFoundException("User not found!");
-            }
-            // TODO: Better password validation with hashing (bcrypt?)
-            if(existingUser.Password != userLoginDTO.Password)
-            {
-                throw new ArgumentException("Incorrect password!");
+                var enumerable = await users.CreateEnumerableAsync(tx);
+                var enumerator = enumerable.GetAsyncEnumerator();
+                while (await enumerator.MoveNextAsync(CancellationToken.None))
+                {
+                    var currentUser = enumerator.Current.Value;
+                    if (currentUser.Email == userLoginDTO.Email)
+                    {
+                        if (currentUser.Password == userLoginDTO.Password)
+                        {
+                            // To be implemented
+                            return;
+                        }
+                    }
+                }
+                throw new KeyNotFoundException(nameof(User));
             }
         }
 
         public async Task<IEnumerable<UserInfoDTO>> GetAllAsync()
         {
-           var users = await _repo.GetAllAsync();
-            if(users.Count == 0)
+            var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
+            using (ITransaction tx = StateManager.CreateTransaction())
             {
-                return [];
+                var enumerable = await users.CreateEnumerableAsync(tx);
+                var enumerator = enumerable.GetAsyncEnumerator();
+                List<UserInfoDTO> result = new();
+                while (await enumerator.MoveNextAsync(CancellationToken.None))
+                {
+                    var currentUser = enumerator.Current.Value;
+                    result.Add(currentUser.AsInfoDTO());
+                }
+                enumerator.Dispose();
+                return result;
             }
-            List<UserInfoDTO> result = new List<UserInfoDTO>();
-            foreach (var user in users)
-            {
-                result.Add(user.AsInfoDTO());
-            }
-            return result;
         }
 
         public async Task<IEnumerable<UserInfoDTO>> GetAllUnverifiedAsync()
         {
-            var users = await _repo.GetAllAsync(x => x.UserState == UserState.Unverified);
-            if(users.Count == 0)
+            var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
+            using (ITransaction tx = StateManager.CreateTransaction())
             {
-                return [];
+                var enumerable = await users.CreateEnumerableAsync(tx);
+                var enumerator = enumerable.GetAsyncEnumerator();
+                List<UserInfoDTO> result = new();
+                while (await enumerator.MoveNextAsync(CancellationToken.None))
+                {
+                    var currentUser = enumerator.Current.Value;
+                    if (currentUser.UserState == UserState.Unverified)
+                    {
+                        result.Add(currentUser.AsInfoDTO());
+                    }
+                }
+                enumerator.Dispose();
+                return result;
             }
-            List<UserInfoDTO> result = new List<UserInfoDTO>();
-            foreach (var user in users)
-            {
-                result.Add(user.AsInfoDTO());
-            }
-            return result;
         }
 
         public async Task<UserInfoDTO> GetAsync(Guid id)
         {
-            var user = await _repo.GetAsync(id) as User;
-            if (user == null)
+            var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
+            using (ITransaction tx = StateManager.CreateTransaction())
             {
-                throw new KeyNotFoundException("User not found!");
+                var user = await users.TryGetValueAsync(tx, id);
+                if (user.HasValue)
+                {
+                    var existingUser = user.Value;
+                    return existingUser.AsInfoDTO();
+                }
+                else
+                {
+                    throw new KeyNotFoundException("User not found");
+                }
             }
-            return user.AsInfoDTO();
         }
 
         public async Task<UserStateDTO> GetUserStateAsync(Guid id)
         {
-            var existingUser = await _repo.GetAsync(id) as User;
-            if (existingUser == null)
+            var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
+            using (ITransaction tx = StateManager.CreateTransaction())
             {
-                throw new KeyNotFoundException("User not found");
+                var user = await users.TryGetValueAsync(tx, id);
+                if (user.HasValue)
+                {
+                    var existingUser = user.Value;
+                    return existingUser.AsStateDTO();
+                }
+                else
+                {
+                    throw new KeyNotFoundException("User not found");
+                }
             }
-            UserStateDTO userStateDTO = new UserStateDTO
-            {
-                UserId = id,
-                UserState = existingUser.UserState
-            };
-            return userStateDTO;
         }
 
         public async Task RegisterNewUserAsync(RegisterUserDTO registerUserDTO)
         {
-            // TODO: validate data
-            User user = new User
+            if (registerUserDTO == null)
             {
-                Id = Guid.NewGuid(),
-                Username = registerUserDTO.Username,
-                Email = registerUserDTO.Email,
-                Password = registerUserDTO.Password,
-                Address = registerUserDTO.Address,
-                DateOfBirth = registerUserDTO.DateOfBirth,
-                Fullname = registerUserDTO.Fullname,
-                UserPicture = registerUserDTO.UserPicture,
-                UserType = registerUserDTO.UserType,
-                UserState = registerUserDTO.UserType == UserType.Driver ? UserState.Unverified : UserState.Default,
-                _CreatedAt = DateTimeOffset.UtcNow
-            };
-            await _repo.CreateAsync(user);
+                throw new ArgumentNullException(nameof(registerUserDTO));
+            }
+            var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
+            using (ITransaction tx = StateManager.CreateTransaction())
+            {
+                // TODO: validate data
+                User user = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Username = registerUserDTO.Username,
+                    Email = registerUserDTO.Email,
+                    Password = registerUserDTO.Password,
+                    Address = registerUserDTO.Address,
+                    DateOfBirth = registerUserDTO.DateOfBirth,
+                    Fullname = registerUserDTO.Fullname,
+                    UserPicture = registerUserDTO.UserPicture,
+                    UserType = registerUserDTO.UserType,
+                    UserState = registerUserDTO.UserType == UserType.Driver ? UserState.Unverified : UserState.Default,
+                    _CreatedAt = DateTimeOffset.UtcNow
+                };
+                await users.AddAsync(tx, user.Id, user);
+                await tx.CommitAsync();
+            }
         }
         public async Task UpdateUserAsync(UserInfoDTO userDTO)
         {
-            var existingUser = await _repo.GetAsync(userDTO.Id) as User;
-            if (existingUser == null)
+            if (userDTO == null)
             {
-                throw new KeyNotFoundException("User not found");
+                throw new ArgumentNullException(nameof(userDTO));
             }
-            existingUser.Username = userDTO.Username;
-            existingUser.Email = userDTO.Email;
-            existingUser.Address = userDTO.Address;
-            existingUser.DateOfBirth = userDTO.DateOfBirth;
-            existingUser.Fullname = userDTO.Fullname;
-            existingUser.UserPicture = userDTO.UserPicture;
-            existingUser._UpdatedAt = DateTimeOffset.UtcNow;
-            await _repo.UpdateAsync(existingUser);
+            var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
+            using (ITransaction tx = StateManager.CreateTransaction())
+            {
+                var user = await users.TryGetValueAsync(tx, userDTO.Id);
+                if (user.HasValue)
+                {
+                    var existingUser = user.Value;
+                    existingUser.Username = userDTO.Username;
+                    existingUser.Email = userDTO.Email;
+                    existingUser.Address = userDTO.Address;
+                    existingUser.DateOfBirth = userDTO.DateOfBirth;
+                    existingUser.Fullname = userDTO.Fullname;
+                    existingUser.UserPicture = userDTO.UserPicture;
+                    existingUser._UpdatedAt = DateTimeOffset.UtcNow;
+                    await users.AddOrUpdateAsync(tx, existingUser.Id, existingUser, (u1, u2) => u2);
+                    await tx.CommitAsync();
+                }
+            }
         }
 
         public async Task DeleteUserAsync(Guid id)
         {
-            await _repo.DeleteAsync(id);
+            var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
+            using (ITransaction tx = StateManager.CreateTransaction())
+            {
+                var res = await users.TryRemoveAsync(tx, id);
+                if (!res.HasValue)
+                {
+                    throw new KeyNotFoundException(nameof(User));
+                }
+                await tx.CommitAsync();
+            }
         }
 
 
         public async Task VerifyUserAsync(Guid userId)
         {
-            var existingUser = await _repo.GetAsync(userId) as User;
-            if (existingUser == null)
+            var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
+            using (ITransaction tx = StateManager.CreateTransaction())
             {
-                throw new KeyNotFoundException("User not found");
+                var user = await users.TryGetValueAsync(tx, userId);
+                if (user.HasValue)
+                {
+                    var existingUser = user.Value;
+                    existingUser.UserState = UserState.Verified;
+                    existingUser._VerifiedAt = DateTimeOffset.UtcNow;
+                    existingUser._UpdatedAt = DateTimeOffset.UtcNow;
+                    await users.AddOrUpdateAsync(tx,userId,existingUser,(u1, u2) => u2);
+                    await tx.CommitAsync();
+                }
+                else
+                {
+                    throw new KeyNotFoundException(nameof(User));
+                }
             }
-            existingUser.UserState = UserState.Verified;
-            existingUser._VerifiedAt = DateTimeOffset.UtcNow;
-            existingUser._UpdatedAt = DateTimeOffset.UtcNow;
-            await _repo.UpdateAsync(existingUser);
         }
         public async Task BanUserAsync(Guid userId)
         {
-            var existingUser = await _repo.GetAsync(userId) as User;
-            if (existingUser == null)
+            var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
+            using (ITransaction tx = StateManager.CreateTransaction())
             {
-                throw new KeyNotFoundException("User not found");
+                var user = await users.TryGetValueAsync(tx, userId);
+                if (user.HasValue)
+                {
+                    var existingUser = user.Value;
+                    existingUser.UserState = UserState.Denied;
+                    existingUser._VerifiedAt = null;
+                    existingUser._UpdatedAt = DateTimeOffset.UtcNow;
+                    await users.AddOrUpdateAsync(tx, userId, existingUser, (u1, u2) => u2);
+                    await tx.CommitAsync();
+                }
+                else
+                {
+                    throw new KeyNotFoundException(nameof(User));
+                }
             }
-            existingUser.UserState = UserState.Denied;
-            existingUser._UpdatedAt = DateTimeOffset.UtcNow;
-            await _repo.UpdateAsync(existingUser);
         }
         #endregion
 
         /// <summary>
-        /// Optional override to create listeners (e.g., TCP, HTTP) for this service replica to handle client or user requests.
+        /// Optional override to create listeners (e.g., HTTP, Service Remoting, WCF, etc.) for this service replica to handle client or user requests.
         /// </summary>
+        /// <remarks>
+        /// For more information on service communication, see https://aka.ms/servicefabricservicecommunication
+        /// </remarks>
         /// <returns>A collection of listeners.</returns>
-        protected override IEnumerable<ServiceInstanceListener> CreateServiceInstanceListeners()
+        protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
         {
-            return this.CreateServiceRemotingInstanceListeners();
+            return this.CreateServiceRemotingReplicaListeners();
         }
 
         /// <summary>
         /// This is the main entry point for your service instance.
         /// </summary>
         /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service instance.</param>
-        protected override async Task RunAsync(CancellationToken cancellationToken)
-        {
-            // TODO: Replace the following sample code with your own logic 
-            //       or remove this RunAsync override if it's not needed in your service.
+        //protected override async Task RunAsync(CancellationToken cancellationToken)
+        //{
+        //    // TODO: Replace the following sample code with your own logic 
+        //    //       or remove this RunAsync override if it's not needed in your service.
 
-            long iterations = 0;
+        //    while (true)
+        //    {
+        //        cancellationToken.ThrowIfCancellationRequested();
 
-            while (true)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                ServiceEventSource.Current.ServiceMessage(this.Context, "Working-{0}", ++iterations);
-
-                await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
-            }
-        }
+        //        await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+        //    }
+        //}
     }
 }

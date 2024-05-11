@@ -1,10 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <StartupServicesManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.microsoft.com/2011/01/fabric">
   <Parameters>
-    <Parameter Name="TaxiUserData_InstanceCount" DefaultValue="-1" />
-    <Parameter Name="TaxiCDN_InstanceCount" DefaultValue="-1" />
+    <Parameter Name="TaxiUserData_MinReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="TaxiUserData_TargetReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="TaxiUserData_PartitionCount" DefaultValue="10" />
+    <Parameter Name="TaxiUserData_LowKey" DefaultValue="0" />
+    <Parameter Name="TaxiUserData_HighKey" DefaultValue="9" />
     <Parameter Name="TaxiRideStateful_MinReplicaSetSize" DefaultValue="3" />
     <Parameter Name="TaxiRideStateful_TargetReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="TaxiCDN_InstanceCount" DefaultValue="-1" />
     <Parameter Name="TaxiWebAPI_InstanceCount" DefaultValue="-1" />
   </Parameters>
   <Services>
@@ -14,9 +18,9 @@
 
          The attribute ServiceTypeName below must match the name defined in the imported ServiceManifest.xml file. -->
     <Service Name="TaxiUserData" ServicePackageActivationMode="ExclusiveProcess">
-      <StatelessService ServiceTypeName="TaxiUserDataType" InstanceCount="[TaxiUserData_InstanceCount]">
-        <SingletonPartition />
-      </StatelessService>
+      <StatefulService ServiceTypeName="TaxiUserDataType" TargetReplicaSetSize="[TaxiUserData_TargetReplicaSetSize]" MinReplicaSetSize="[TaxiUserData_MinReplicaSetSize]">
+        <UniformInt64Partition PartitionCount="[TaxiUserData_PartitionCount]" LowKey="[TaxiUserData_LowKey]" HighKey="[TaxiUserData_HighKey]" />
+      </StatefulService>
     </Service>
     <Service Name="TaxiCDN" ServicePackageActivationMode="ExclusiveProcess">
       <StatelessService ServiceTypeName="TaxiCDNType" InstanceCount="[TaxiCDN_InstanceCount]">

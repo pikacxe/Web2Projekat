@@ -6,9 +6,9 @@ using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Contracts;
 using Common.Entities;
 using Common.DTO;
-using Common.Repository;
 using Common;
 using System.Diagnostics;
+using Microsoft.ServiceFabric.Data;
 
 namespace TaxiRideStateful
 {
@@ -17,67 +17,90 @@ namespace TaxiRideStateful
     /// </summary>
     internal sealed class TaxiRideStateful : StatefulService, IRideDataService
     {
-        private readonly IRepository<Ride> _repo;
-        public TaxiRideStateful(StatefulServiceContext context, IRepository<Ride> repository)
+        private readonly string _dictName = "rides";
+        public TaxiRideStateful(StatefulServiceContext context)
             : base(context)
         {
-            _repo = repository;
         }
         #region Ride service methods
         public async Task<IEnumerable<Ride>> GetAllRidesAsync()
         {
-            return await _repo.GetAllAsync();
+            var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
+            List<Ride> list = new();
+            using (ITransaction tx = StateManager.CreateTransaction())
+            {
+                var enumerable = await rides.CreateEnumerableAsync(tx);
+                var enumerator = enumerable.GetAsyncEnumerator();
+                while (await enumerator.MoveNextAsync(CancellationToken.None))
+                {
+                    list.Add(enumerator.Current.Value);
+                }
+                enumerator.Dispose();
+            }
+            return list;
         }
 
         public async Task<IEnumerable<CompletedRideInfoDTO>> GetCompletedRidesUserAsync(Guid userId)
         {
-            var completedRides = await _repo.GetAllAsync(ride => ride.RideState == Common.RideState.Finished
-                                                && ride.PassengerId == userId);
-            if (completedRides.Count == 0)
+            var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
+            List<CompletedRideInfoDTO> result = new();
+            using (ITransaction tx = StateManager.CreateTransaction())
             {
-                return Enumerable.Empty<CompletedRideInfoDTO>();
+                var enumerable = await rides.CreateEnumerableAsync(tx);
+                var enumerator = enumerable.GetAsyncEnumerator();
+                while (await enumerator.MoveNextAsync(CancellationToken.None))
+                {
+                    var currentRide = enumerator.Current.Value;
+                    if (currentRide.PassengerId == userId && currentRide.RideState == RideState.Finished)
+                    {
+                        result.Add(currentRide.AsInfoDTO());
+                    }
+                }
+                enumerator.Dispose();
+                return result;
             }
-
-            List<CompletedRideInfoDTO> completedRideInfoDTOs = new List<CompletedRideInfoDTO>();
-            foreach (var ride in completedRides)
-            {
-                completedRideInfoDTOs.Add(ride.AsInfoDTO());
-            }
-            return completedRideInfoDTOs;
         }
 
         public async Task<IEnumerable<CompletedRideInfoDTO>> GetCompletedRidesDriverAsync(Guid driverId)
         {
-            var completedRides = await _repo.GetAllAsync(ride => ride.RideState == Common.RideState.Finished
-                                                && ride.DriverId == driverId);
-            if (completedRides.Count == 0)
+            var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
+            List<CompletedRideInfoDTO> result = new();
+            using (ITransaction tx = StateManager.CreateTransaction())
             {
-                return Enumerable.Empty<CompletedRideInfoDTO>();
+                var enumerable = await rides.CreateEnumerableAsync(tx);
+                var enumerator = enumerable.GetAsyncEnumerator();
+                while (await enumerator.MoveNextAsync(CancellationToken.None))
+                {
+                    var currentRide = enumerator.Current.Value;
+                    if (currentRide.DriverId == driverId && currentRide.RideState == RideState.Finished)
+                    {
+                        result.Add(currentRide.AsInfoDTO());
+                    }
+                }
+                enumerator.Dispose();
+                return result;
             }
-
-            List<CompletedRideInfoDTO> completedRideInfoDTOs = new List<CompletedRideInfoDTO>();
-            foreach (var ride in completedRides)
-            {
-                completedRideInfoDTOs.Add(ride.AsInfoDTO());
-            }
-            return completedRideInfoDTOs;
         }
 
         public async Task<IEnumerable<AvailableRideDTO>> GetPendingRidesAsync()
         {
-            var rides = await _repo.GetAllAsync(ride => ride.RideState == RideState.Pending);
-
-            if (rides.Count == 0)
+            var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
+            List<AvailableRideDTO> result = new();
+            using (ITransaction tx = StateManager.CreateTransaction())
             {
-                return Enumerable.Empty<AvailableRideDTO>();
+                var enumerable = await rides.CreateEnumerableAsync(tx);
+                var enumerator = enumerable.GetAsyncEnumerator();
+                while (await enumerator.MoveNextAsync(CancellationToken.None))
+                {
+                    var currentRide = enumerator.Current.Value;
+                    if (currentRide.RideState == RideState.Pending)
+                    {
+                        result.Add(currentRide.AsAvailableRideDTO());
+                    }
+                }
+                enumerator.Dispose();
+                return result;
             }
-
-            List<AvailableRideDTO> availableRideDTOs = new List<AvailableRideDTO>();
-            foreach (var ride in rides)
-            {
-                availableRideDTOs.Add(ride.AsAvailableRideDTO());
-            }
-            return availableRideDTOs;
         }
 
         public async Task RequestRideAsync(ProposedRideDTO proposedRide)
@@ -98,34 +121,46 @@ namespace TaxiRideStateful
                 _CreatedAt = DateTimeOffset.Now,
                 _UpdatedAt = DateTimeOffset.Now,
             };
-            ServiceEventSource.Current.ServiceMessage(this.Context, $"Ride[{newRide.Id},{newRide.StartDestination},{newRide.EndDestination}]");
             try
             {
-                await _repo.CreateAsync(newRide);
+                using (ITransaction tx = StateManager.CreateTransaction())
+                {
+                    var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
+                    await rides.AddAsync(tx, newRide.Id, newRide);
+                    await tx.CommitAsync();
+                }
             }
             catch (Exception ex)
             {
                 Trace.WriteLine(ex);
-
             }
         }
 
         public async Task AcceptRideAsync(AcceptRideDTO acceptRideDTO)
         {
-            if(acceptRideDTO == null)
+            if (acceptRideDTO == null)
             {
                 throw new ArgumentNullException(nameof(acceptRideDTO));
             }
-            var ride = await _repo.GetAsync(acceptRideDTO.RideId);
-            if (ride == null)
+            var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
+            using (ITransaction tx = StateManager.CreateTransaction())
             {
-                throw new KeyNotFoundException(nameof(acceptRideDTO));
+
+                var ride = await rides.TryGetValueAsync(tx, acceptRideDTO.RideId);
+                if (ride.HasValue)
+                {
+                    Ride acceptedRide = ride.Value;
+                    acceptedRide.DriverId = acceptRideDTO.DriverID;
+                    acceptedRide.DriverETA = acceptedRide.DriverETA;
+                    acceptedRide.RideState = RideState.InProgress;
+                    await rides.AddOrUpdateAsync(tx,acceptedRide.Id,acceptedRide,(r1,r2)=>r2);
+                    await tx.CommitAsync();
+                }
+                else
+                {
+                    throw new KeyNotFoundException(nameof(acceptRideDTO));
+                }
             }
-            Ride acceptedRide = (Ride)ride;
-            acceptedRide.DriverId = acceptRideDTO.DriverID;
-            acceptedRide.DriverETA = acceptedRide.DriverETA;
-            acceptedRide.RideState = RideState.InProgress;
-            await _repo.UpdateAsync(acceptedRide);
         }
 
         public async Task FinishRideAsync(FinishedRideDTO finishedRideDTO)
@@ -134,16 +169,25 @@ namespace TaxiRideStateful
             {
                 throw new ArgumentNullException(nameof(finishedRideDTO));
             }
-            var ride = await _repo.GetAsync(finishedRideDTO.RideId);
-            if (ride == null)
+            var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
+            using (ITransaction tx = StateManager.CreateTransaction())
             {
-                throw new KeyNotFoundException(nameof(finishedRideDTO));
+
+                var ride = await rides.TryGetValueAsync(tx, finishedRideDTO.RideId);
+                if (ride.HasValue)
+                {
+                    Ride finishedRide = ride.Value;
+                    finishedRide.RideState = RideState.Finished;
+                    finishedRide.Rating = finishedRideDTO.Rating;
+                    finishedRide._FinishedAt = DateTimeOffset.Now;
+                    await rides.AddOrUpdateAsync(tx, finishedRide.Id, finishedRide, (r1, r2) => r2);
+                    await tx.CommitAsync();
+                }
+                else
+                {
+                    throw new KeyNotFoundException(nameof(finishedRideDTO));
+                }
             }
-            Ride finishedRide = (Ride)ride;
-            finishedRide.RideState = RideState.Finished;
-            finishedRide.Rating = finishedRideDTO.Rating;
-            finishedRide._FinishedAt = DateTimeOffset.Now;
-            await _repo.UpdateAsync(finishedRide);
         }
 
         #endregion
@@ -165,33 +209,26 @@ namespace TaxiRideStateful
         /// This method executes when this replica of your service becomes primary and has write status.
         /// </summary>
         /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service replica.</param>
-        protected override async Task RunAsync(CancellationToken cancellationToken)
-        {
-            // TODO: Replace the following sample code with your own logic 
-            //       or remove this RunAsync override if it's not needed in your service.
+        //protected override async Task RunAsync(CancellationToken cancellationToken)
+        //{
 
-            var myDictionary = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, long>>("myDictionary");
+        //    var rides = await this.StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
 
-            while (true)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
+        //    while (true)
+        //    {
+        //        cancellationToken.ThrowIfCancellationRequested();
 
-                using (var tx = this.StateManager.CreateTransaction())
-                {
-                    var result = await myDictionary.TryGetValueAsync(tx, "Counter");
+        //        using (var tx = this.StateManager.CreateTransaction())
+        //        {
+        //            // TODO: Save state to db
 
-                    ServiceEventSource.Current.ServiceMessage(this.Context, "Current Counter Value: {0}",
-                        result.HasValue ? result.Value.ToString() : "Value does not exist.");
+        //            // If an exception is thrown before calling CommitAsync, the transaction aborts, all changes are 
+        //            // discarded, and nothing is saved to the secondary replicas.
+        //            await tx.CommitAsync();
+        //        }
 
-                    await myDictionary.AddOrUpdateAsync(tx, "Counter", 0, (key, value) => ++value);
-
-                    // If an exception is thrown before calling CommitAsync, the transaction aborts, all changes are 
-                    // discarded, and nothing is saved to the secondary replicas.
-                    await tx.CommitAsync();
-                }
-
-                await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
-            }
-        }
+        //        await Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
+        //    }
+        //}
     }
 }

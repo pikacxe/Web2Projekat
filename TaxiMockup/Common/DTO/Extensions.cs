@@ -37,5 +37,11 @@ namespace Common.DTO
 
         };
 
+        public static UserStateDTO AsStateDTO(this User user) => new UserStateDTO
+        {
+            UserId = user.Id,
+            UserState = user.UserState
+        };
+
     }
 }

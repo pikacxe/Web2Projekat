@@ -32,7 +32,8 @@ namespace TaxiWebAPI
                 {
                     throw new ArgumentNullException(nameof(serviceSettings));
                 }
-                IUserDataService proxy = ServiceProxy.Create<IUserDataService>(new Uri(serviceSettings.ConnectionString));
+                var partKey = new ServicePartitionKey(1);
+                IUserDataService proxy = ServiceProxy.Create<IUserDataService>(new Uri(serviceSettings.ConnectionString),partKey);
                 return proxy;
             });
             return services;
