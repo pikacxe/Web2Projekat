@@ -9,6 +9,7 @@ using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using TaxiWebAPI.Settings;
 
 namespace TaxiWebAPI
 {
@@ -69,6 +70,15 @@ namespace TaxiWebAPI
                         });
                         builder.Services.AddControllers()
                                         .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
+                        // Cors settings
+                        CorsSettings corsSettings = new CorsSettings(configuration,"cors");
+                        builder.Services.AddCors(options =>
+                        {
+                            options.AddPolicy(name: corsSettings.PolicyName, policy =>
+                            {
+                                policy.WithOrigins(corsSettings.AllowedHosts);
+                            });
+                        });
                         builder.Services.AddEndpointsApiExplorer();
                         builder.Services.AddSwaggerGen(c =>
                         {
@@ -109,6 +119,8 @@ namespace TaxiWebAPI
                             app.UseSwagger();
                             app.UseSwaggerUI();
                         }
+                        app.UseCors(corsSettings.PolicyName);
+                        app.UseAuthentication();
                         app.UseAuthorization();
                         app.MapControllers();
                         return app;
