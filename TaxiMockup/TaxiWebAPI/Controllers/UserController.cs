@@ -31,7 +31,14 @@ namespace TaxiWebAPI.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult> Get()
         {
-            return Ok(await _proxy.GetAllAsync());
+            try
+            {
+                return Ok(await _proxy.GetAllAsync());
+            }
+            catch
+            {
+                return StatusCode(500);
+            }
         }
 
         // GET /users/:id
@@ -44,9 +51,13 @@ namespace TaxiWebAPI.Controllers
                 var user = await _proxy.GetAsync(id);
                 return Ok(user);
             }
-            catch (Exception ex)
+            catch (KeyNotFoundException)
             {
-                return BadRequest(ex.Message);
+                return NotFound("User not found");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500);
             }
         }
 
@@ -56,7 +67,14 @@ namespace TaxiWebAPI.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult> UnverifiedUsers()
         {
-            return Ok(await _proxy.GetAllUnverifiedAsync());
+            try
+            {
+                return Ok(await _proxy.GetAllUnverifiedAsync());
+            }
+            catch
+            {
+                return StatusCode(500);
+            }
         }
 
         // POST /users/login
@@ -77,7 +95,7 @@ namespace TaxiWebAPI.Controllers
             }
             catch (KeyNotFoundException)
             {
-                return BadRequest("Invalid login data");
+                return NotFound("Invalid email or password");
             }
             catch
             {
@@ -96,9 +114,13 @@ namespace TaxiWebAPI.Controllers
                 var state = await _proxy.GetUserStateAsync(id);
                 return Ok(state);
             }
-            catch (Exception ex)
+            catch (KeyNotFoundException)
             {
-                return BadRequest(ex.Message);
+                return NotFound("User not found");
+            }
+            catch
+            {
+                return StatusCode(500);
             }
         }
 
@@ -109,10 +131,15 @@ namespace TaxiWebAPI.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> Register(RegisterUserRequest registerUserDTO)
         {
-
-            await _proxy.RegisterNewUserAsync(registerUserDTO);
-            return Ok();
-
+            try
+            {
+                await _proxy.RegisterNewUserAsync(registerUserDTO);
+                return NoContent();
+            }
+            catch
+            {
+                return StatusCode(500);
+            }
         }
 
         // PUT /users/update
@@ -126,9 +153,17 @@ namespace TaxiWebAPI.Controllers
                 await _proxy.UpdateUserAsync(userInfoDTO);
                 return NoContent();
             }
-            catch (Exception ex)
+            catch (KeyNotFoundException)
             {
-                return BadRequest($"Update failed: {ex.Message}");
+                return NotFound("User not found");
+            }
+            catch (ArgumentNullException)
+            {
+                return BadRequest("Invalid data");
+            }
+            catch
+            {
+                return StatusCode(500);
             }
         }
 
@@ -141,12 +176,16 @@ namespace TaxiWebAPI.Controllers
             try
             {
                 await _proxy.VerifyUserAsync(id);
+                return NoContent();
             }
-            catch (Exception ex)
+            catch (KeyNotFoundException)
             {
-                return BadRequest($"{ex.Message}");
+                return NotFound("User not found");
             }
-            return NoContent();
+            catch
+            {
+                return StatusCode(500);
+            }
         }
 
         // PATCH /users/:id/ban
@@ -158,12 +197,16 @@ namespace TaxiWebAPI.Controllers
             try
             {
                 await _proxy.BanUserAsync(id);
+                return NoContent();
             }
-            catch (Exception ex)
+            catch (KeyNotFoundException)
             {
-                return BadRequest($"{ex.Message}");
+                return NotFound("User not found");
             }
-            return NoContent();
+            catch
+            {
+                return StatusCode(500);
+            }
         }
 
 
@@ -172,8 +215,19 @@ namespace TaxiWebAPI.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult> Delete(Guid id)
         {
-            await _proxy.DeleteUserAsync(id);
-            return Ok();
+            try
+            {
+                await _proxy.DeleteUserAsync(id);
+                return NoContent();
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound("User not found");
+            }
+            catch
+            {
+                return StatusCode(500);
+            }
         }
 
         private string CreateToken(AuthResponse response)

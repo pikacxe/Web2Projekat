@@ -206,6 +206,10 @@ namespace TaxiUserData
                     await users.AddOrUpdateAsync(tx, existingUser.Id, existingUser, (u1, u2) => u2);
                     await tx.CommitAsync();
                 }
+                else
+                {
+                    throw new KeyNotFoundException();
+                }
             }
         }
 

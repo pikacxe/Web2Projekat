@@ -23,8 +23,15 @@ namespace TaxiWebAPI.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult> Get()
         {
-            var rides = await _proxy.GetAllRidesAsync();
-            return Ok(rides);
+            try
+            {
+                var rides = await _proxy.GetAllRidesAsync();
+                return Ok(rides);
+            }
+            catch
+            {
+                return StatusCode(500);
+            }
         }
 
         // GET rides/pending
@@ -33,8 +40,15 @@ namespace TaxiWebAPI.Controllers
         [Authorize(Roles = "Driver")]
         public async Task<ActionResult> GetPending()
         {
-            var rides = await _proxy.GetPendingRidesAsync();
-            return Ok(rides);
+            try
+            {
+                var rides = await _proxy.GetPendingRidesAsync();
+                return Ok(rides);
+            }
+            catch
+            {
+                return StatusCode(500);
+            }
         }
 
         // GET /rides/:id/history
@@ -43,8 +57,15 @@ namespace TaxiWebAPI.Controllers
         [Authorize(Roles = "User")]
         public async Task<ActionResult> GetCompletedRidesForUser(Guid id)
         {
-            var rides = await _proxy.GetCompletedRidesUserAsync(id);
-            return Ok(rides);
+            try
+            {
+                var rides = await _proxy.GetCompletedRidesUserAsync(id);
+                return Ok(rides);
+            }
+            catch
+            {
+                return StatusCode(500);
+            }
         }
 
         // GET /rides/:id/finished
@@ -53,8 +74,15 @@ namespace TaxiWebAPI.Controllers
         [Authorize(Roles = "Driver")]
         public async Task<ActionResult> GetCompletedRidesForDriver(Guid id)
         {
-            var rides = await _proxy.GetCompletedRidesDriverAsync(id);
-            return Ok(rides);
+            try
+            {
+                var rides = await _proxy.GetCompletedRidesDriverAsync(id);
+                return Ok(rides);
+            }
+            catch
+            {
+                return StatusCode(500);
+            }
         }
 
         // POST /rides/request
@@ -67,9 +95,13 @@ namespace TaxiWebAPI.Controllers
             {
                 await _proxy.RequestRideAsync(proposedRide);
             }
+            catch (ArgumentNullException)
+            {
+                return BadRequest("Invalid data");
+            }
             catch
             {
-                return BadRequest("Key not found!");
+                return StatusCode(500);
             }
             return NoContent();
         }
@@ -83,12 +115,20 @@ namespace TaxiWebAPI.Controllers
             try
             {
                 await _proxy.AcceptRideAsync(acceptedRide);
+                return Ok();
+            }
+            catch (ArgumentNullException)
+            {
+                return BadRequest("Invalid data");
+            }
+            catch (KeyNotFoundException)
+            {
+                return BadRequest("Ride not found");
             }
             catch
             {
-                return BadRequest("Key not found");
+                return StatusCode(500);
             }
-            return Ok();
         }
 
         // PATCH /rides/finish
@@ -101,9 +141,17 @@ namespace TaxiWebAPI.Controllers
             {
                 await _proxy.FinishRideAsync(finishedRideDTO);
             }
+            catch (ArgumentNullException)
+            {
+                return BadRequest("Invalid data");
+            }
+            catch (KeyNotFoundException)
+            {
+                return BadRequest("Ride not found");
+            }
             catch
             {
-                return BadRequest("Key not found");
+                return StatusCode(500);
             }
             return Ok();
         }

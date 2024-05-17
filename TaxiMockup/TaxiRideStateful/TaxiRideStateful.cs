@@ -121,18 +121,11 @@ namespace TaxiRideStateful
                 _CreatedAt = DateTimeOffset.Now,
                 _UpdatedAt = DateTimeOffset.Now,
             };
-            try
+            using (ITransaction tx = StateManager.CreateTransaction())
             {
-                using (ITransaction tx = StateManager.CreateTransaction())
-                {
-                    var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
-                    await rides.AddAsync(tx, newRide.Id, newRide);
-                    await tx.CommitAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine(ex);
+                var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
+                await rides.AddAsync(tx, newRide.Id, newRide);
+                await tx.CommitAsync();
             }
         }
 
@@ -153,7 +146,7 @@ namespace TaxiRideStateful
                     acceptedRide.DriverId = acceptRideDTO.DriverID;
                     acceptedRide.DriverETA = acceptedRide.DriverETA;
                     acceptedRide.RideState = RideState.InProgress;
-                    await rides.AddOrUpdateAsync(tx,acceptedRide.Id,acceptedRide,(r1,r2)=>r2);
+                    await rides.AddOrUpdateAsync(tx, acceptedRide.Id, acceptedRide, (r1, r2) => r2);
                     await tx.CommitAsync();
                 }
                 else
