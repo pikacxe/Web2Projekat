@@ -1,26 +1,36 @@
 # Project architecture
 
-Mock uber like app with microservice architecture where users can request a ride and wait for designated drivers.
+---
 
+## Intruduction
+
+Mock uber like app with microservice architecture where users can request a ride and wait for designated drivers.
 
 > - Database is hosted inside docker container
 > - Services use Microsoft Service Fabric distributed systems platform
 > - React app is hosted inside docker container
 
 ## Tech stack
+
 - Frontend - **React**
 - Backend - **.NET 8.0**
 - Service Fabric
 - MongoDB
 
 ## Services
+
 - API gateway - web stateless
 - User data service - stateful
 - Ride data service - stateful
 - CDN service (User images) - web statless
 - Mail service - stateless (TBD)
 
+<summary>
+
 ## Entities
+
+<details>
+
 ```
 - User
     - UserId
@@ -44,6 +54,7 @@ Mock uber like app with microservice architecture where users can request a ride
     - _VerifiedAt
     - _UpdatedAt
 ```
+
 ```
 - Ride
     - RideId
@@ -66,44 +77,53 @@ Mock uber like app with microservice architecture where users can request a ride
     - _FinishedAt
 ```
 
+</details>
+</summary>
+
+<summary>
 
 ## Endpoints
 
+<details>
+
 - [ ] /users
-    - [X] /
-    - [X] /:id
-    - [X] /unverified
-    - [X] /login
-    - [X] /register
-        - [ ] /oauth
-    - [X] /:id/state
-    - [X] /update
-    - [X] /delete
-    - [X] /:id/verify
-    - [X] /:id/ban
-- [X] /rides
-    - [X] /
-    - [X] /pending
-    - [X] /:id/history
-    - [X] /:id/finished
-    - [X] /request
-    - [X] /accept
-    - [X] /finish
+  - [x] /
+  - [x] /:id
+  - [x] /unverified
+  - [x] /login
+  - [x] /register
+    - [ ] /oauth
+  - [x] /:id/state
+  - [x] /update
+  - [x] /delete
+  - [x] /:id/verify
+  - [x] /:id/ban
+- [x] /rides
+
+  - [x] /
+  - [x] /pending
+  - [x] /:id/history
+  - [x] /:id/finished
+  - [x] /request
+  - [x] /accept
+  - [x] /finish
+
+    </details>
+  </summary>
 
 ## TODO
-- [ ] add JWT auth / Identity service
-    - [ ] add RBAC
-- [X] implement CDN service
-- [X] implement Ride data service
-    - [ ] implement data validation
-- [X] implement User data service
-    - [ ] implement data validation
-- [X] add dto validation
-- [ ] improve error message propagation
+
+- [x] add JWT auth / Identity service
+  - [x] add RBAC
+- [x] implement CDN service
+- [x] implement Ride data service
+  - [ ] implement data validation
+- [x] implement User data service
+  - [ ] implement data validation
+- [x] add dto validation
+- [x] improve error message propagation
 - [ ] refactor service proxy creation
 - [ ] add partition key resolver for stateful service
 - [ ] implement database backup for stateful service's state
 - [ ] update cdn service to regular stateless from web stateless ?? (user mail service as regular stateless)
 - [ ] add mail service
-
-
