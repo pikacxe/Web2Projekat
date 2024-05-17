@@ -9,8 +9,6 @@ using Common.DTO;
 using Common;
 using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Data;
-using MongoDB.Driver.Core.Authentication;
-using System.Runtime.InteropServices;
 
 namespace TaxiUserData
 {
@@ -19,7 +17,6 @@ namespace TaxiUserData
     /// </summary>
     internal sealed class TaxiUserData : StatefulService, IUserDataService
     {
-        private readonly IRepository<User> _repo;
         private readonly string _dictName = "users";
         public TaxiUserData(StatefulServiceContext context)
             : base(context)
@@ -53,7 +50,7 @@ namespace TaxiUserData
             }
         }
 
-        public async Task ValidateLoginParamsAsync(UserLoginRequest userLoginDTO)
+        public async Task<AuthResponse> ValidateLoginParamsAsync(UserLoginRequest userLoginDTO)
         {
             var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
             using (ITransaction tx = StateManager.CreateTransaction())
@@ -65,10 +62,17 @@ namespace TaxiUserData
                     var currentUser = enumerator.Current.Value;
                     if (currentUser.Email == userLoginDTO.Email)
                     {
+                        // TODO update check to Bcrypt validate
                         if (currentUser.Password == userLoginDTO.Password)
                         {
-                            // To be implemented
-                            return;
+                            AuthResponse authResponse = new AuthResponse()
+                            {
+                                UserID = currentUser.Id.ToString(),
+                                ProfileImage = currentUser.UserPicture,
+                                Username = currentUser.Username,
+                                UserRole = currentUser.UserType.ToString()
+                            };
+                            return authResponse;
                         }
                     }
                 }

@@ -1,6 +1,7 @@
 ﻿using Common.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Contracts;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TaxiWebAPI.Controllers
 {
@@ -19,6 +20,7 @@ namespace TaxiWebAPI.Controllers
 
         // GET rides/
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> Get()
         {
             var rides = await _proxy.GetAllRidesAsync();
@@ -28,6 +30,7 @@ namespace TaxiWebAPI.Controllers
         // GET rides/pending
         [HttpGet]
         [Route("pending")]
+        [Authorize(Roles = "Driver")]
         public async Task<ActionResult> GetPending()
         {
             var rides = await _proxy.GetPendingRidesAsync();
@@ -37,6 +40,7 @@ namespace TaxiWebAPI.Controllers
         // GET /rides/:id/history
         [HttpGet]
         [Route("{id}/history")]
+        [Authorize(Roles = "User")]
         public async Task<ActionResult> GetCompletedRidesForUser(Guid id)
         {
             var rides = await _proxy.GetCompletedRidesUserAsync(id);
@@ -46,6 +50,7 @@ namespace TaxiWebAPI.Controllers
         // GET /rides/:id/finished
         [HttpGet]
         [Route("{id}/finished")]
+        [Authorize(Roles = "Driver")]
         public async Task<ActionResult> GetCompletedRidesForDriver(Guid id)
         {
             var rides = await _proxy.GetCompletedRidesDriverAsync(id);
@@ -55,6 +60,7 @@ namespace TaxiWebAPI.Controllers
         // POST /rides/request
         [HttpPost]
         [Route("request")]
+        [Authorize(Roles = "User")]
         public async Task<ActionResult> RequestRide(ProposedRideRequest proposedRide)
         {
             try
@@ -71,6 +77,7 @@ namespace TaxiWebAPI.Controllers
         // PATCH /rides/accept
         [HttpPatch]
         [Route("accept")]
+        [Authorize(Roles = "Driver")]
         public async Task<ActionResult> AcceptRide(AcceptRideRequest acceptedRide)
         {
             try
@@ -87,6 +94,7 @@ namespace TaxiWebAPI.Controllers
         // PATCH /rides/finish
         [HttpPatch]
         [Route("finish")]
+        [Authorize(Roles = "User")]
         public async Task<ActionResult> FinishRide(FinishedRideRequest finishedRideDTO)
         {
             try

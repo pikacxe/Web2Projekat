@@ -43,7 +43,7 @@ namespace Contracts
         /// <exception cref="ArgumentException"/>
         /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task ValidateLoginParamsAsync(UserLoginRequest userLoginDTO);
+        Task<AuthResponse> ValidateLoginParamsAsync(UserLoginRequest userLoginDTO);
         /// <summary>
         /// Registers new user
         /// </summary>

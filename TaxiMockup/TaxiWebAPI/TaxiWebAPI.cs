@@ -5,6 +5,10 @@ using Microsoft.ServiceFabric.Services.Runtime;
 using Common.Entities;
 using System.Text.Json.Serialization;
 using Common.MongoDB;
+using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace TaxiWebAPI
 {
@@ -46,21 +50,68 @@ namespace TaxiWebAPI
                         // Register data services
                         builder.Services.AddRideDataService(configuration);
                         builder.Services.AddUserDataService(configuration);
+                        // Add jwt token settings
+                        builder.Services.AddJwtSettings(configuration);
+                        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                        .AddJwtBearer(options =>
+                        {
+                            options.TokenValidationParameters = new TokenValidationParameters
+                            {
+                                ValidateIssuer = true,
+                                ValidateAudience = true,
+                                ValidateLifetime = true,
+                                ValidateIssuerSigningKey = true,
+                                ValidIssuer = builder.Configuration["JwtTokenSettings:Issuer"],
+                                ValidAudience = builder.Configuration["JwtTokenSettings:Audience"],
+                                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtTokenSettings:Key"] ?? string.Empty)),
+                                ClockSkew = TimeSpan.Zero
+                            };
+                        });
                         builder.Services.AddControllers()
                                         .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
                         builder.Services.AddEndpointsApiExplorer();
-                        builder.Services.AddSwaggerGen();
+                        builder.Services.AddSwaggerGen(c =>
+                        {
+                            c.SwaggerDoc("v1", new() { Title = "TaxiMockup´s API", Version = "v1" });
+
+                            // Define the OAuth2.0 scheme that's in use (i.e., Implicit Flow)
+                            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                            {
+                                Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                                Name = "Authorization",
+                                In = ParameterLocation.Header,
+                                Type = SecuritySchemeType.ApiKey,
+                                Scheme = "Bearer"
+                            });
+
+                            c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+                            {
+                                {
+                                    new OpenApiSecurityScheme
+                                    {
+                                        Reference = new OpenApiReference
+                                        {
+                                            Type = ReferenceType.SecurityScheme,
+                                            Id = "Bearer"
+                                        },
+                                        Scheme = "oauth2",
+                                        Name = "Bearer",
+                                        In = ParameterLocation.Header,
+                                    },
+                                    new List<string>()
+                                }
+                            });
+                        });
+
                         var app = builder.Build();
                         if (app.Environment.IsDevelopment())
                         {
-                        app.UseSwagger();
-                        app.UseSwaggerUI();
+                            app.UseSwagger();
+                            app.UseSwaggerUI();
                         }
                         app.UseAuthorization();
                         app.MapControllers();
-
                         return app;
-
                     }))
             };
         }
