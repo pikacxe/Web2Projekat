@@ -10,7 +10,7 @@ namespace TaxiWebAPI
     {
         public static IServiceCollection AddRideDataService(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddSingleton(serviceProvider =>
+            services.AddTransient(serviceProvider =>
             {
                 var serviceSettings = configuration.GetSection(nameof(RideDataServiceSettings)).Get<RideDataServiceSettings>();
                 if(serviceSettings == null)
@@ -26,7 +26,7 @@ namespace TaxiWebAPI
 
         public static IServiceCollection AddUserDataService(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddSingleton(serviceProvider =>
+            services.AddTransient(serviceProvider =>
             {
                 var serviceSettings = configuration.GetSection(nameof(UserDataServiceSettings)).Get<UserDataServiceSettings>();
                 if (serviceSettings == null)
