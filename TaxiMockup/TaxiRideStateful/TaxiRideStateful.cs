@@ -40,10 +40,10 @@ namespace TaxiRideStateful
             return list;
         }
 
-        public async Task<IEnumerable<CompletedRideInfoDTO>> GetCompletedRidesUserAsync(Guid userId)
+        public async Task<IEnumerable<CompletedRideInfoResponse>> GetCompletedRidesUserAsync(Guid userId)
         {
             var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
-            List<CompletedRideInfoDTO> result = new();
+            List<CompletedRideInfoResponse> result = new();
             using (ITransaction tx = StateManager.CreateTransaction())
             {
                 var enumerable = await rides.CreateEnumerableAsync(tx);
@@ -61,10 +61,10 @@ namespace TaxiRideStateful
             }
         }
 
-        public async Task<IEnumerable<CompletedRideInfoDTO>> GetCompletedRidesDriverAsync(Guid driverId)
+        public async Task<IEnumerable<CompletedRideInfoResponse>> GetCompletedRidesDriverAsync(Guid driverId)
         {
             var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
-            List<CompletedRideInfoDTO> result = new();
+            List<CompletedRideInfoResponse> result = new();
             using (ITransaction tx = StateManager.CreateTransaction())
             {
                 var enumerable = await rides.CreateEnumerableAsync(tx);
@@ -82,10 +82,10 @@ namespace TaxiRideStateful
             }
         }
 
-        public async Task<IEnumerable<AvailableRideDTO>> GetPendingRidesAsync()
+        public async Task<IEnumerable<AvailableRideResponse>> GetPendingRidesAsync()
         {
             var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
-            List<AvailableRideDTO> result = new();
+            List<AvailableRideResponse> result = new();
             using (ITransaction tx = StateManager.CreateTransaction())
             {
                 var enumerable = await rides.CreateEnumerableAsync(tx);
@@ -103,7 +103,7 @@ namespace TaxiRideStateful
             }
         }
 
-        public async Task RequestRideAsync(ProposedRideDTO proposedRide)
+        public async Task RequestRideAsync(ProposedRideRequest proposedRide)
         {
             if (proposedRide == null)
             {
@@ -136,7 +136,7 @@ namespace TaxiRideStateful
             }
         }
 
-        public async Task AcceptRideAsync(AcceptRideDTO acceptRideDTO)
+        public async Task AcceptRideAsync(AcceptRideRequest acceptRideDTO)
         {
             if (acceptRideDTO == null)
             {
@@ -163,7 +163,7 @@ namespace TaxiRideStateful
             }
         }
 
-        public async Task FinishRideAsync(FinishedRideDTO finishedRideDTO)
+        public async Task FinishRideAsync(FinishedRideRequest finishedRideDTO)
         {
             if (finishedRideDTO == null)
             {

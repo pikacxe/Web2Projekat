@@ -4,7 +4,7 @@ namespace Common.DTO
 {
     public static class Extensions
     {
-        public static CompletedRideInfoDTO AsInfoDTO(this Ride ride) => new CompletedRideInfoDTO
+        public static CompletedRideInfoResponse AsInfoDTO(this Ride ride) => new CompletedRideInfoResponse
         {
             RideId = ride.Id,
             PassengerId = ride.PassengerId,
@@ -16,14 +16,14 @@ namespace Common.DTO
             Rating = ride.Rating
         };
 
-        public static AvailableRideDTO AsAvailableRideDTO(this Ride ride) => new AvailableRideDTO
+        public static AvailableRideResponse AsAvailableRideDTO(this Ride ride) => new AvailableRideResponse
         {
             RideId = ride.Id,
             StartDestination = ride.StartDestination,
             EndDestination = ride.EndDestination
         };
 
-        public static UserInfoDTO AsInfoDTO(this User user) => new UserInfoDTO
+        public static UserInfo AsInfoDTO(this User user) => new UserInfo
         {
             Id = user.Id,
             Username = user.Username,
@@ -37,7 +37,7 @@ namespace Common.DTO
 
         };
 
-        public static UserStateDTO AsStateDTO(this User user) => new UserStateDTO
+        public static UserStateResponse AsStateDTO(this User user) => new UserStateResponse
         {
             UserId = user.Id,
             UserState = user.UserState

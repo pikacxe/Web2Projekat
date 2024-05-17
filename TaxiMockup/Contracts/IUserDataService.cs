@@ -11,17 +11,17 @@ namespace Contracts
         /// <param name="id"></param>        
         /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task<UserInfoDTO> GetAsync(Guid id);
+        Task<UserInfo> GetAsync(Guid id);
         /// <summary>
         /// Gets all users in system
         /// </summary>
         /// <returns></returns>
-        Task<IEnumerable<UserInfoDTO>> GetAllAsync();
+        Task<IEnumerable<UserInfo>> GetAllAsync();
         /// <summary>
         /// Gets all unverified users
         /// </summary>
         /// <returns></returns>
-        Task<IEnumerable<UserInfoDTO>> GetAllUnverifiedAsync();
+        Task<IEnumerable<UserInfo>> GetAllUnverifiedAsync();
         /// <summary>
         /// Verrifies user
         /// </summary>
@@ -43,20 +43,20 @@ namespace Contracts
         /// <exception cref="ArgumentException"/>
         /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task ValidateLoginParamsAsync(UserLoginDTO userLoginDTO);
+        Task ValidateLoginParamsAsync(UserLoginRequest userLoginDTO);
         /// <summary>
         /// Registers new user
         /// </summary>
         /// <param name="registerUserDTO">Registration parameters</param>
         /// <returns></returns>
-        Task RegisterNewUserAsync(RegisterUserDTO registerUserDTO);
+        Task RegisterNewUserAsync(RegisterUserRequest registerUserDTO);
         /// <summary>
         /// Gets user state for given user
         /// </summary>
         /// <param name="id"></param>
         /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task<UserStateDTO> GetUserStateAsync(Guid id);
+        Task<UserStateResponse> GetUserStateAsync(Guid id);
         /// <summary>
         /// Changes user password
         /// </summary>
@@ -64,7 +64,7 @@ namespace Contracts
         /// <exception cref="ArgumentException"/>
         /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task ChangeUserPasswordAsync(UserPasswordChangeDTO userPasswordChangeDTO);
+        Task ChangeUserPasswordAsync(UserPasswordChange userPasswordChangeDTO);
         /// <summary>
         /// Updates user
         /// </summary>
@@ -72,7 +72,7 @@ namespace Contracts
         /// <exception cref="ArgumentException"/>
         /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task UpdateUserAsync(UserInfoDTO userDTO);
+        Task UpdateUserAsync(UserInfo userDTO);
         /// <summary>
         /// Deletes user
         /// </summary>

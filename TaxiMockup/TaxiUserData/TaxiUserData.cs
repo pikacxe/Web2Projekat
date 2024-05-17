@@ -27,7 +27,7 @@ namespace TaxiUserData
         }
 
         #region User service methods
-        public async Task ChangeUserPasswordAsync(UserPasswordChangeDTO userPasswordChangeDTO)
+        public async Task ChangeUserPasswordAsync(UserPasswordChange userPasswordChangeDTO)
         {
             var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
             using (ITransaction tx = StateManager.CreateTransaction())
@@ -53,7 +53,7 @@ namespace TaxiUserData
             }
         }
 
-        public async Task ValidateLoginParamsAsync(UserLoginDTO userLoginDTO)
+        public async Task ValidateLoginParamsAsync(UserLoginRequest userLoginDTO)
         {
             var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
             using (ITransaction tx = StateManager.CreateTransaction())
@@ -76,14 +76,14 @@ namespace TaxiUserData
             }
         }
 
-        public async Task<IEnumerable<UserInfoDTO>> GetAllAsync()
+        public async Task<IEnumerable<UserInfo>> GetAllAsync()
         {
             var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
             using (ITransaction tx = StateManager.CreateTransaction())
             {
                 var enumerable = await users.CreateEnumerableAsync(tx);
                 var enumerator = enumerable.GetAsyncEnumerator();
-                List<UserInfoDTO> result = new();
+                List<UserInfo> result = new();
                 while (await enumerator.MoveNextAsync(CancellationToken.None))
                 {
                     var currentUser = enumerator.Current.Value;
@@ -94,14 +94,14 @@ namespace TaxiUserData
             }
         }
 
-        public async Task<IEnumerable<UserInfoDTO>> GetAllUnverifiedAsync()
+        public async Task<IEnumerable<UserInfo>> GetAllUnverifiedAsync()
         {
             var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
             using (ITransaction tx = StateManager.CreateTransaction())
             {
                 var enumerable = await users.CreateEnumerableAsync(tx);
                 var enumerator = enumerable.GetAsyncEnumerator();
-                List<UserInfoDTO> result = new();
+                List<UserInfo> result = new();
                 while (await enumerator.MoveNextAsync(CancellationToken.None))
                 {
                     var currentUser = enumerator.Current.Value;
@@ -115,7 +115,7 @@ namespace TaxiUserData
             }
         }
 
-        public async Task<UserInfoDTO> GetAsync(Guid id)
+        public async Task<UserInfo> GetAsync(Guid id)
         {
             var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
             using (ITransaction tx = StateManager.CreateTransaction())
@@ -133,7 +133,7 @@ namespace TaxiUserData
             }
         }
 
-        public async Task<UserStateDTO> GetUserStateAsync(Guid id)
+        public async Task<UserStateResponse> GetUserStateAsync(Guid id)
         {
             var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
             using (ITransaction tx = StateManager.CreateTransaction())
@@ -151,7 +151,7 @@ namespace TaxiUserData
             }
         }
 
-        public async Task RegisterNewUserAsync(RegisterUserDTO registerUserDTO)
+        public async Task RegisterNewUserAsync(RegisterUserRequest registerUserDTO)
         {
             if (registerUserDTO == null)
             {
@@ -179,7 +179,7 @@ namespace TaxiUserData
                 await tx.CommitAsync();
             }
         }
-        public async Task UpdateUserAsync(UserInfoDTO userDTO)
+        public async Task UpdateUserAsync(UserInfo userDTO)
         {
             if (userDTO == null)
             {

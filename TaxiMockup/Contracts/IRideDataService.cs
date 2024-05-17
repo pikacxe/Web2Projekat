@@ -11,19 +11,19 @@ namespace Contracts
         /// </summary>
         /// <param name="proposedRide">Parameters for requesting ride</param>
         /// <returns></returns>
-        Task RequestRideAsync(ProposedRideDTO proposedRide);
+        Task RequestRideAsync(ProposedRideRequest proposedRide);
         /// <summary>
         /// Accepts pending ride
         /// </summary>
         /// <param name="acceptRideDTO">Parameters for accepting ride</param>
         /// <returns></returns>
-        Task AcceptRideAsync(AcceptRideDTO acceptRideDTO);
+        Task AcceptRideAsync(AcceptRideRequest acceptRideDTO);
         /// <summary>
         /// Finishes ride in progress
         /// </summary>
         /// <param name="finishRideDTO">Parameters for finishing ride</param>
         /// <returns></returns>
-        Task FinishRideAsync(FinishedRideDTO finishRideDTO);
+        Task FinishRideAsync(FinishedRideRequest finishRideDTO);
         /// <summary>
         /// Gets all rides
         /// </summary>
@@ -35,17 +35,17 @@ namespace Contracts
         /// </summary>
         /// <param name="filter">Filter to filter rides by</param>
         /// <returns></returns>
-        Task<IEnumerable<CompletedRideInfoDTO>> GetCompletedRidesUserAsync(Guid userId);
+        Task<IEnumerable<CompletedRideInfoResponse>> GetCompletedRidesUserAsync(Guid userId);
         /// <summary>
         /// Gets completed rides for given driver
         /// </summary>
         /// <param name="driverId"></param>
         /// <returns></returns>
-        Task<IEnumerable<CompletedRideInfoDTO>> GetCompletedRidesDriverAsync(Guid driverId);
+        Task<IEnumerable<CompletedRideInfoResponse>> GetCompletedRidesDriverAsync(Guid driverId);
         /// <summary>
         /// Gets all pending rides
         /// </summary>
         /// <returns></returns>
-        Task<IEnumerable<AvailableRideDTO>> GetPendingRidesAsync();
+        Task<IEnumerable<AvailableRideResponse>> GetPendingRidesAsync();
     }
 }

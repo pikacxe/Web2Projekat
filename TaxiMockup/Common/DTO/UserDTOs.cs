@@ -4,9 +4,10 @@ using System.Runtime.Serialization;
 namespace Common.DTO
 {
     [DataContract]
-    public class UserLoginDTO
+    public class UserLoginRequest
     {
         [DataMember]
+        [EmailAddress]
         [Required(AllowEmptyStrings = false, ErrorMessage = "Email is required!")]
         public string? Email { get; set; }
         [DataMember]
@@ -15,12 +16,13 @@ namespace Common.DTO
     }
 
     [DataContract]
-    public class RegisterUserDTO
+    public class RegisterUserRequest
     {
         [DataMember]
         [Required(AllowEmptyStrings = false, ErrorMessage = "Username is required!")]
         public string? Username { get; set; }
         [DataMember]
+        [EmailAddress]
         [Required(AllowEmptyStrings = false, ErrorMessage = "Email is required!")]
         public string? Email { get; set; }
         [DataMember]
@@ -39,12 +41,12 @@ namespace Common.DTO
         [Required(ErrorMessage = "Address is required!")]
         public string? Address { get; set; }
         [DataMember]
-        [Range(0, 1)]
+        [Range(0,1)]
         public UserType UserType { get; set; }
     }
 
     [DataContract]
-    public class UserStateDTO
+    public class UserStateResponse
     {
         [DataMember]
         [Required(ErrorMessage = "User Id is required!")]
@@ -54,7 +56,7 @@ namespace Common.DTO
     }
 
     [DataContract]
-    public class UserPasswordChangeDTO
+    public class UserPasswordChange
     {
         [DataMember]
         [Required(ErrorMessage = "User Id is required!")]
@@ -68,7 +70,7 @@ namespace Common.DTO
     }
 
     [DataContract]
-    public class UserInfoDTO
+    public class UserInfo
     {
         [DataMember]
         public Guid Id { get; set; }

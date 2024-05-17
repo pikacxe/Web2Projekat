@@ -55,7 +55,7 @@ namespace TaxiWebAPI.Controllers
         // POST /rides/request
         [HttpPost]
         [Route("request")]
-        public async Task<ActionResult> RequestRide(ProposedRideDTO proposedRide)
+        public async Task<ActionResult> RequestRide(ProposedRideRequest proposedRide)
         {
             try
             {
@@ -71,7 +71,7 @@ namespace TaxiWebAPI.Controllers
         // PATCH /rides/accept
         [HttpPatch]
         [Route("accept")]
-        public async Task<ActionResult> AcceptRide(AcceptRideDTO acceptedRide)
+        public async Task<ActionResult> AcceptRide(AcceptRideRequest acceptedRide)
         {
             try
             {
@@ -87,7 +87,7 @@ namespace TaxiWebAPI.Controllers
         // PATCH /rides/finish
         [HttpPatch]
         [Route("finish")]
-        public async Task<ActionResult> FinishRide(FinishedRideDTO finishedRideDTO)
+        public async Task<ActionResult> FinishRide(FinishedRideRequest finishedRideDTO)
         {
             try
             {

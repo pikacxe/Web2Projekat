@@ -50,7 +50,7 @@ namespace TaxiWebAPI.Controllers
         // POST /users/login
         [HttpPost]
         [Route("login")]
-        public async Task<ActionResult> Login(UserLoginDTO login)
+        public async Task<ActionResult> Login(UserLoginRequest login)
         {
             try
             {
@@ -85,7 +85,7 @@ namespace TaxiWebAPI.Controllers
         // POST /users/register
         [HttpPost]
         [Route("register")]
-        public async Task<ActionResult> Register(RegisterUserDTO registerUserDTO)
+        public async Task<ActionResult> Register(RegisterUserRequest registerUserDTO)
         {
 
             await _proxy.RegisterNewUserAsync(registerUserDTO);
@@ -96,7 +96,7 @@ namespace TaxiWebAPI.Controllers
         // PUT /users/update
         [HttpPut]
         [Route("update")]
-        public async Task<ActionResult> UpdateUser(UserInfoDTO userInfoDTO)
+        public async Task<ActionResult> UpdateUser(UserInfo userInfoDTO)
         {
             try
             {
