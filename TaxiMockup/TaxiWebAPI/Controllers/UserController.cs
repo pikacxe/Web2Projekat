@@ -1,10 +1,6 @@
-﻿using Common;
-using Common.DTO;
-using Common.Entities;
-using Common.Repository;
+﻿using Common.DTO;
 using Contracts;
 using Microsoft.AspNetCore.Mvc;
-using ZstdSharp.Unsafe;
 
 namespace TaxiWebAPI.Controllers
 {
