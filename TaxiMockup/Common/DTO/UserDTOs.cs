@@ -41,7 +41,7 @@ namespace Common.DTO
         [Required(ErrorMessage = "Address is required!")]
         public string? Address { get; set; }
         [DataMember]
-        [Range(0,1)]
+        [Range(0,1, ErrorMessage ="User type must be 'User' or 'Driver'")]
         public UserType UserType { get; set; }
     }
 
@@ -49,14 +49,13 @@ namespace Common.DTO
     public class UserStateResponse
     {
         [DataMember]
-        [Required(ErrorMessage = "User Id is required!")]
         public Guid UserId { get; set; }
         [DataMember]
         public UserState UserState { get; set; }
     }
 
     [DataContract]
-    public class UserPasswordChange
+    public class UserPasswordChangeRequest
     {
         [DataMember]
         [Required(ErrorMessage = "User Id is required!")]

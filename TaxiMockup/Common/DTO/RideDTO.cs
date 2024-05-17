@@ -81,7 +81,7 @@ namespace Common.DTO
         public Guid DriverID { get; set; }
         [DataMember]
         [Required(ErrorMessage = "Driver ETA is required")]
-        [Range(0, double.MaxValue)]
+        [Range(0, double.MaxValue,ErrorMessage ="Driver ETA must be greate than zero")]
         public double DriverETA { get; set; }
     }
     [DataContract]
@@ -91,6 +91,7 @@ namespace Common.DTO
         [Required(ErrorMessage ="Ride id is required")]
         public Guid RideId { get; set; }
         [DataMember]
+        [Range(0,10,ErrorMessage ="Rating must be on a scale 1 to 10")]
         public int Rating { get; set; }
     }
 }

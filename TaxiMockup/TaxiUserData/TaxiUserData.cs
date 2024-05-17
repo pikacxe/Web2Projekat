@@ -24,7 +24,7 @@ namespace TaxiUserData
         }
 
         #region User service methods
-        public async Task ChangeUserPasswordAsync(UserPasswordChange userPasswordChangeDTO)
+        public async Task ChangeUserPasswordAsync(UserPasswordChangeRequest userPasswordChangeDTO)
         {
             var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
             using (ITransaction tx = StateManager.CreateTransaction())

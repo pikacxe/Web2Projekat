@@ -64,7 +64,7 @@ namespace Contracts
         /// <exception cref="ArgumentException"/>
         /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task ChangeUserPasswordAsync(UserPasswordChange userPasswordChangeDTO);
+        Task ChangeUserPasswordAsync(UserPasswordChangeRequest userPasswordChangeDTO);
         /// <summary>
         /// Updates user
         /// </summary>
