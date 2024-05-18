@@ -8,23 +8,21 @@ namespace TaxiWebAPI
 {
     public static class Extensions
     {
-        public static IServiceCollection AddRideDataService(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddRideDataServiceFactory(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddTransient(serviceProvider =>
+            services.AddSingleton(serviceProvider =>
             {
                 var serviceSettings = configuration.GetSection(nameof(RideDataServiceSettings)).Get<RideDataServiceSettings>();
                 if(serviceSettings == null)
                 {
                     throw new ApplicationException("Ride data service settings not set");
                 }
-                var partKey = new ServicePartitionKey(serviceSettings.PartitionKey);
-                IRideDataService proxy = ServiceProxy.Create<IRideDataService>(new Uri(serviceSettings.ConnectionString), partKey);
-                return proxy;
+                return serviceSettings;
             });
             return services;
         }
 
-        public static IServiceCollection AddUserDataService(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddUserDataServiceFactory(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddTransient(serviceProvider =>
             {
@@ -33,9 +31,7 @@ namespace TaxiWebAPI
                 {
                     throw new ApplicationException("User data service settings not set");
                 }
-                var partKey = new ServicePartitionKey(1);
-                IUserDataService proxy = ServiceProxy.Create<IUserDataService>(new Uri(serviceSettings.ConnectionString),partKey);
-                return proxy;
+                return serviceSettings;
             });
             return services;
         }

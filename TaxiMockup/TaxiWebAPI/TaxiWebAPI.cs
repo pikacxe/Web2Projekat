@@ -49,8 +49,8 @@ namespace TaxiWebAPI
                             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                             .Build();
                         // Register data services
-                        builder.Services.AddRideDataService(configuration);
-                        builder.Services.AddUserDataService(configuration);
+                        builder.Services.AddRideDataServiceFactory(configuration);
+                        builder.Services.AddUserDataServiceFactory(configuration);
                         // Add jwt token settings
                         builder.Services.AddJwtSettings(configuration);
                         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

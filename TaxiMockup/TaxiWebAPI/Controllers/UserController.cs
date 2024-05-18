@@ -1,10 +1,13 @@
 ﻿using Common;
 using Common.DTO;
+using Common.Settings;
 using Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.TagHelpers;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.ServiceFabric.Services.Client;
+using Microsoft.ServiceFabric.Services.Remoting.Client;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -17,14 +20,16 @@ namespace TaxiWebAPI.Controllers
     public class UserController : ControllerBase
     {
         private readonly ILogger<UserController> _logger;
-        private readonly IUserDataService _proxy;
+        private readonly UserDataServiceSettings _userServiceSettings;
         private readonly JwtTokenSettings _jwtSettings;
+        private readonly Uri _serviceUri;
 
-        public UserController(ILogger<UserController> logger, IUserDataService proxy, JwtTokenSettings jwtSettings)
+        public UserController(ILogger<UserController> logger,UserDataServiceSettings serviceSettings , JwtTokenSettings jwtSettings)
         {
             _logger = logger;
-            _proxy = proxy;
             _jwtSettings = jwtSettings;
+            _userServiceSettings = serviceSettings;
+            _serviceUri = new Uri(_userServiceSettings.ConnectionString);
         }
 
         // GET /users/
@@ -34,6 +39,7 @@ namespace TaxiWebAPI.Controllers
         {
             try
             {
+                var _proxy = CreateProxy(Guid.NewGuid());
                 return Ok(await _proxy.GetAllAsync());
             }
             catch
@@ -49,6 +55,7 @@ namespace TaxiWebAPI.Controllers
         {
             try
             {
+                var _proxy = CreateProxy(id);
                 var user = await _proxy.GetAsync(id);
                 return Ok(user);
             }
@@ -70,6 +77,7 @@ namespace TaxiWebAPI.Controllers
         {
             try
             {
+                var _proxy = CreateProxy(Guid.NewGuid());
                 return Ok(await _proxy.GetAllUnverifiedAsync());
             }
             catch
@@ -86,6 +94,7 @@ namespace TaxiWebAPI.Controllers
         {
             try
             {
+                var _proxy = CreateProxy(Guid.NewGuid());
                 var response = await _proxy.ValidateLoginParamsAsync(login);
                 if (response == null)
                 {
@@ -113,6 +122,7 @@ namespace TaxiWebAPI.Controllers
         {
             try
             {
+                var _proxy = CreateProxy(id);
                 var state = await _proxy.GetUserStateAsync(id);
                 return Ok(state);
             }
@@ -136,6 +146,7 @@ namespace TaxiWebAPI.Controllers
         {
             try
             {
+                var _proxy = CreateProxy(Guid.NewGuid());
                 await _proxy.RegisterNewUserAsync(registerUserDTO);
                 return NoContent();
             }
@@ -170,6 +181,7 @@ namespace TaxiWebAPI.Controllers
             }
             try
             {
+                var _proxy = CreateProxy(id);
                 await _proxy.UpdateUserAsync(userInfoDTO);
                 return NoContent();
             }
@@ -205,6 +217,7 @@ namespace TaxiWebAPI.Controllers
             }
             try
             {
+                var _proxy = CreateProxy(id);
                 await _proxy.ChangeUserPasswordAsync(request);
                 return NoContent();
             }
@@ -226,6 +239,7 @@ namespace TaxiWebAPI.Controllers
         {
             try
             {
+                var _proxy = CreateProxy(id);
                 await _proxy.VerifyUserAsync(id);
                 return NoContent();
             }
@@ -248,6 +262,7 @@ namespace TaxiWebAPI.Controllers
         {
             try
             {
+                var _proxy = CreateProxy(id);
                 await _proxy.BanUserAsync(id);
                 return NoContent();
             }
@@ -270,6 +285,7 @@ namespace TaxiWebAPI.Controllers
         {
             try
             {
+                var _proxy = CreateProxy(id);
                 await _proxy.DeleteUserAsync(id);
                 return NoContent();
             }
@@ -303,6 +319,18 @@ namespace TaxiWebAPI.Controllers
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
+        }
+
+        private IUserDataService CreateProxy(Guid id)
+        {
+            // Get a hash code for the GUID
+            int hash = id.GetHashCode();
+
+            // Ensure positive values and evenly distribute keys in the range of 0-10
+            long key = (hash & 0x7FFFFFFF) % 11; // & 0x7FFFFFFF is used to ensure the hash code is non-negative
+
+            ServicePartitionKey partKey = new ServicePartitionKey(key);
+            return ServiceProxy.Create<IUserDataService>(_serviceUri, partKey);
         }
 
     }

@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Contracts;
 using Microsoft.AspNetCore.Authorization;
+using Common.Settings;
+using Microsoft.ServiceFabric.Services.Remoting.Client;
+using Microsoft.ServiceFabric.Services.Client;
 
 namespace TaxiWebAPI.Controllers
 {
@@ -10,12 +13,13 @@ namespace TaxiWebAPI.Controllers
     public class RideController : ControllerBase
     {
         private readonly ILogger<RideController> _logger;
-        private readonly IRideDataService _proxy;
-
-        public RideController(ILogger<RideController> logger, IRideDataService proxy)
+        private readonly RideDataServiceSettings _rideServiceSettings;
+        private readonly Uri _rideServiceUri;
+        public RideController(ILogger<RideController> logger,RideDataServiceSettings rideDataServiceSettings)
         {
             _logger = logger;
-            _proxy = proxy;
+            _rideServiceSettings = rideDataServiceSettings;
+            _rideServiceUri = new Uri(_rideServiceSettings.ConnectionString);
         }
 
         // GET rides/
@@ -25,6 +29,7 @@ namespace TaxiWebAPI.Controllers
         {
             try
             {
+                var _proxy = CreateProxy();
                 var rides = await _proxy.GetAllRidesAsync();
                 return Ok(rides);
             }
@@ -42,6 +47,7 @@ namespace TaxiWebAPI.Controllers
         {
             try
             {
+                var _proxy = CreateProxy();
                 var rides = await _proxy.GetPendingRidesAsync();
                 return Ok(rides);
             }
@@ -59,6 +65,7 @@ namespace TaxiWebAPI.Controllers
         {
             try
             {
+                var _proxy = CreateProxy();
                 var rides = await _proxy.GetCompletedRidesUserAsync(id);
                 return Ok(rides);
             }
@@ -76,6 +83,7 @@ namespace TaxiWebAPI.Controllers
         {
             try
             {
+                var _proxy = CreateProxy();
                 var rides = await _proxy.GetCompletedRidesDriverAsync(id);
                 return Ok(rides);
             }
@@ -93,6 +101,7 @@ namespace TaxiWebAPI.Controllers
         {
             try
             {
+                var _proxy = CreateProxy();
                 await _proxy.RequestRideAsync(proposedRide);
             }
             catch (ArgumentNullException)
@@ -114,6 +123,7 @@ namespace TaxiWebAPI.Controllers
         {
             try
             {
+                var _proxy = CreateProxy();
                 await _proxy.AcceptRideAsync(acceptedRide);
                 return Ok();
             }
@@ -139,6 +149,7 @@ namespace TaxiWebAPI.Controllers
         {
             try
             {
+                var _proxy = CreateProxy();
                 await _proxy.FinishRideAsync(finishedRideDTO);
             }
             catch (ArgumentNullException)
@@ -156,6 +167,10 @@ namespace TaxiWebAPI.Controllers
             return Ok();
         }
 
-
+        private IRideDataService CreateProxy()
+        {
+            ServicePartitionKey key = new ServicePartitionKey(_rideServiceSettings.PartitionKey);
+            return ServiceProxy.Create<IRideDataService>(_rideServiceUri, key);
+        }
     }
 }
