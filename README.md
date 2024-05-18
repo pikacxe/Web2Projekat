@@ -123,8 +123,10 @@ Mock uber like app with microservice architecture where users can request a ride
 - [x] add dto validation
 - [x] improve error message propagation 
     - [ ] better handling of AggregateException
-- [ ] add communication between TaxiUserData and TaxiRideData
-- [ ] add partition key resolver for stateful service
+- [x] add communication between TaxiUserData and TaxiRideData
+- [x] add partition key resolver for stateful service
 - [x] implement database backup for stateful service's state
 - [ ] update cdn service to regular stateless from web stateless ?? (user mail service as regular stateless)
 - [ ] add mail service
+- [ ] add service event logging
+- [ ] move service proxy creation to Common with partition key resolver
