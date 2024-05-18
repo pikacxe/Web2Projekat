@@ -7,8 +7,8 @@
     <Parameter Name="TaxiUserData_LowKey" Value="0" />
     <Parameter Name="TaxiUserData_HighKey" Value="9" />
     <Parameter Name="TaxiCDN_InstanceCount" Value="-1" />
-    <Parameter Name="TaxiRideStateful_MinReplicaSetSize" Value="3" />
-    <Parameter Name="TaxiRideStateful_TargetReplicaSetSize" Value="3" />
+    <Parameter Name="TaxiRideData_MinReplicaSetSize" Value="3" />
+    <Parameter Name="TaxiRideData_TargetReplicaSetSize" Value="3" />
     <Parameter Name="TaxiWebAPI_InstanceCount" Value="-1" />
   </Parameters>
 </StartupServices>

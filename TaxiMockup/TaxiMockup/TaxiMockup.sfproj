@@ -47,7 +47,7 @@
     <ProjectReference Include="..\TaxiCDN\TaxiCDN.csproj">
       <ServiceLaunchUrl>http://localhost:{ServicePort}/</ServiceLaunchUrl>
     </ProjectReference>
-    <ProjectReference Include="..\TaxiRideStateful\TaxiRideStateful.csproj" />
+    <ProjectReference Include="..\TaxiRideStateful\TaxiRideData.csproj" />
     <ProjectReference Include="..\TaxiUserData\TaxiUserData.csproj" />
     <ProjectReference Include="..\TaxiWebAPI\TaxiWebAPI.csproj">
       <ServiceLaunchUrl>http://localhost:{ServicePort}/swagger</ServiceLaunchUrl>

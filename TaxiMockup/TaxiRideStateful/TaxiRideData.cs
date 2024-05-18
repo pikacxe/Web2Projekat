@@ -10,15 +10,15 @@ using Common;
 using System.Diagnostics;
 using Microsoft.ServiceFabric.Data;
 
-namespace TaxiRideStateful
+namespace TaxiRideData
 {
     /// <summary>
     /// An instance of this class is created for each service replica by the Service Fabric runtime.
     /// </summary>
-    internal sealed class TaxiRideStateful : StatefulService, IRideDataService
+    internal sealed class TaxiRideData : StatefulService, IRideDataService
     {
         private readonly string _dictName = "rides";
-        public TaxiRideStateful(StatefulServiceContext context)
+        public TaxiRideData(StatefulServiceContext context)
             : base(context)
         {
         }

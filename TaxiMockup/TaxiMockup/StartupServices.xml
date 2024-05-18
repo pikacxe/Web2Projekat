@@ -6,8 +6,8 @@
     <Parameter Name="TaxiUserData_PartitionCount" DefaultValue="10" />
     <Parameter Name="TaxiUserData_LowKey" DefaultValue="0" />
     <Parameter Name="TaxiUserData_HighKey" DefaultValue="9" />
-    <Parameter Name="TaxiRideStateful_MinReplicaSetSize" DefaultValue="3" />
-    <Parameter Name="TaxiRideStateful_TargetReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="TaxiRideData_MinReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="TaxiRideData_TargetReplicaSetSize" DefaultValue="3" />
     <Parameter Name="TaxiCDN_InstanceCount" DefaultValue="-1" />
     <Parameter Name="TaxiWebAPI_InstanceCount" DefaultValue="-1" />
   </Parameters>
@@ -27,8 +27,8 @@
         <SingletonPartition />
       </StatelessService>
     </Service>
-    <Service Name="TaxiRideStateful" ServicePackageActivationMode="ExclusiveProcess">
-      <StatefulService ServiceTypeName="TaxiRideStatefulType" TargetReplicaSetSize="[TaxiRideStateful_TargetReplicaSetSize]" MinReplicaSetSize="[TaxiRideStateful_MinReplicaSetSize]">
+    <Service Name="TaxiRideData" ServicePackageActivationMode="ExclusiveProcess">
+      <StatefulService ServiceTypeName="TaxiRideDataType" TargetReplicaSetSize="[TaxiRideData_TargetReplicaSetSize]" MinReplicaSetSize="[TaxiRideData_MinReplicaSetSize]">
         <NamedPartition>
           <Partition Name="USA" />
           <Partition Name="EU" />

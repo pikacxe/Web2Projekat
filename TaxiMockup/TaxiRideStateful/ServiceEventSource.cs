@@ -1,9 +1,9 @@
 using System.Diagnostics.Tracing;
 using System.Fabric;
 
-namespace TaxiRideStateful
+namespace TaxiRideData
 {
-    [EventSource(Name = "MyCompany-TaxiMockup-TaxiRideStateful")]
+    [EventSource(Name = "MyCompany-TaxiMockup-TaxiRideData")]
     internal sealed class ServiceEventSource : EventSource
     {
         public static readonly ServiceEventSource Current = new ServiceEventSource();

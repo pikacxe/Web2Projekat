@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Microsoft.ServiceFabric.Services.Runtime;
 
-namespace TaxiRideStateful
+namespace TaxiRideData
 {
     internal static class Program
     {
@@ -17,10 +17,10 @@ namespace TaxiRideStateful
                 // When Service Fabric creates an instance of this service type,
                 // an instance of the class is created in this host process.
 
-                ServiceRuntime.RegisterServiceAsync("TaxiRideStatefulType",
-                    context => new TaxiRideStateful(context)).GetAwaiter().GetResult();
+                ServiceRuntime.RegisterServiceAsync("TaxiRideDataType",
+                    context => new TaxiRideData(context)).GetAwaiter().GetResult();
 
-                ServiceEventSource.Current.ServiceTypeRegistered(Process.GetCurrentProcess().Id, typeof(TaxiRideStateful).Name);
+                ServiceEventSource.Current.ServiceTypeRegistered(Process.GetCurrentProcess().Id, typeof(TaxiRideData).Name);
 
                 // Prevents this host process from terminating so services keep running.
                 Thread.Sleep(Timeout.Infinite);

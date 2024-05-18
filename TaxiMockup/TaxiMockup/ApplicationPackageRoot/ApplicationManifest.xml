@@ -19,7 +19,7 @@
     </EnvironmentOverrides>
   </ServiceManifestImport>
   <ServiceManifestImport>
-    <ServiceManifestRef ServiceManifestName="TaxiRideStatefulPkg" ServiceManifestVersion="1.0.0" />
+    <ServiceManifestRef ServiceManifestName="TaxiRideDataPkg" ServiceManifestVersion="1.0.0" />
     <ConfigOverrides />
   </ServiceManifestImport>
   <ServiceManifestImport>
