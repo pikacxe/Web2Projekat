@@ -113,17 +113,18 @@ Mock uber like app with microservice architecture where users can request a ride
 
 ## TODO
 
-- [x] add JWT auth / Identity service
+- [x] add JWT auth
   - [x] add RBAC
 - [x] implement CDN service
 - [x] implement Ride data service
-  - [ ] implement data validation
+  - [x] implement data validation
 - [x] implement User data service
-  - [ ] implement data validation
+  - [x] implement data validation
 - [x] add dto validation
-- [x] improve error message propagation
-- [ ] refactor service proxy creation
+- [x] improve error message propagation 
+    - [ ] better handling of AggregateException
+- [ ] add communication between TaxiUserData and TaxiRideData
 - [ ] add partition key resolver for stateful service
-- [ ] implement database backup for stateful service's state
+- [x] implement database backup for stateful service's state
 - [ ] update cdn service to regular stateless from web stateless ?? (user mail service as regular stateless)
 - [ ] add mail service
