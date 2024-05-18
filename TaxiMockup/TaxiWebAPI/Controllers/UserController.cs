@@ -3,6 +3,7 @@ using Common.DTO;
 using Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.TagHelpers;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -51,7 +52,7 @@ namespace TaxiWebAPI.Controllers
                 var user = await _proxy.GetAsync(id);
                 return Ok(user);
             }
-            catch (KeyNotFoundException)
+            catch (AggregateException)
             {
                 return NotFound("User not found");
             }
@@ -93,8 +94,9 @@ namespace TaxiWebAPI.Controllers
                 response.Token = CreateToken(response);
                 return Ok(response);
             }
-            catch (KeyNotFoundException)
+            catch (AggregateException)
             {
+                // TODO better handling
                 return NotFound("Invalid email or password");
             }
             catch
@@ -114,8 +116,9 @@ namespace TaxiWebAPI.Controllers
                 var state = await _proxy.GetUserStateAsync(id);
                 return Ok(state);
             }
-            catch (KeyNotFoundException)
+            catch (AggregateException)
             {
+                // TODO better handling
                 return NotFound("User not found");
             }
             catch
@@ -136,6 +139,10 @@ namespace TaxiWebAPI.Controllers
                 await _proxy.RegisterNewUserAsync(registerUserDTO);
                 return NoContent();
             }
+            catch (ArgumentNullException)
+            {
+                return BadRequest("Invalid data");
+            }
             catch
             {
                 return StatusCode(500);
@@ -143,23 +150,71 @@ namespace TaxiWebAPI.Controllers
         }
 
         // PUT /users/update
-        [HttpPut]
+        [HttpPut("/{id}")]
         [Route("update")]
         [Authorize]
-        public async Task<ActionResult> UpdateUser(UserInfo userInfoDTO)
+        public async Task<ActionResult> UpdateUser(Guid id, UserInfo userInfoDTO)
         {
+            if(id != userInfoDTO.Id)
+            {
+                return Unauthorized("User ids does not match");
+            }
+            var requestUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (requestUserId == null)
+            {
+                return BadRequest("You can only change own password");
+            }
+            if (requestUserId != id.ToString())
+            {
+                return BadRequest("You can only change own password");
+            }
             try
             {
                 await _proxy.UpdateUserAsync(userInfoDTO);
                 return NoContent();
             }
-            catch (KeyNotFoundException)
-            {
-                return NotFound("User not found");
-            }
             catch (ArgumentNullException)
             {
                 return BadRequest("Invalid data");
+            }
+            catch (AggregateException)
+            {
+                // TODO better handling
+                return NotFound("User not found");
+            }
+            catch
+            {
+                return StatusCode(500);
+            }
+        }
+
+        // PATCH /users/:id/change-password
+        [Route("{id}/change-password")]
+        [HttpPatch]
+        [Authorize]
+        public async Task<ActionResult> ChangeUserPassword(Guid id, UserPasswordChangeRequest request)
+        {
+            if(id != request.UserId)
+            {
+                return Unauthorized("User ids do not match");
+            }
+            var requestUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if(requestUserId == null)
+            {
+                return BadRequest("You can only change own password");
+            }
+            if(requestUserId != id.ToString())
+            {
+                return BadRequest("You can only change own password");
+            }
+            try
+            {
+                await _proxy.ChangeUserPasswordAsync(request);
+                return NoContent();
+            }
+            catch (AggregateException)
+            {
+                return NotFound("User not found");
             }
             catch
             {
@@ -178,8 +233,9 @@ namespace TaxiWebAPI.Controllers
                 await _proxy.VerifyUserAsync(id);
                 return NoContent();
             }
-            catch (KeyNotFoundException)
+            catch (AggregateException)
             {
+                // TODO better handling
                 return NotFound("User not found");
             }
             catch
@@ -199,8 +255,9 @@ namespace TaxiWebAPI.Controllers
                 await _proxy.BanUserAsync(id);
                 return NoContent();
             }
-            catch (KeyNotFoundException)
+            catch (AggregateException)
             {
+                // TODO better handling
                 return NotFound("User not found");
             }
             catch
@@ -220,8 +277,9 @@ namespace TaxiWebAPI.Controllers
                 await _proxy.DeleteUserAsync(id);
                 return NoContent();
             }
-            catch (KeyNotFoundException)
+            catch (AggregateException)
             {
+                // TODO better handling
                 return NotFound("User not found");
             }
             catch

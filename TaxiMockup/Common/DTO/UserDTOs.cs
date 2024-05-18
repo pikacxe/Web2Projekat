@@ -84,8 +84,6 @@ namespace Common.DTO
         [DataMember]
         public string? Address { get; set; }
         [DataMember]
-        public UserType UserType { get; set; }
-        [DataMember]
         public string? UserPicture { get; set; }
         [DataMember]
         public UserState UserState { get; set; }
