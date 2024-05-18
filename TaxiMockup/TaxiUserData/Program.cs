@@ -1,10 +1,10 @@
 using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ServiceFabric.Services.Runtime;
-using Common.MongoDB;
 using Microsoft.Extensions.Configuration;
 using Common.Repository;
 using Common.Entities;
+using Common;
 
 namespace TaxiUserData
 {
@@ -61,7 +61,7 @@ namespace TaxiUserData
                     Email = "admin@admin.com",
                     Username = "admin",
                     Password = "password",
-                    UserType = Common.UserType.Admin,
+                    UserType = UserType.Admin,
                     _CreatedAt = DateTime.Now,
                 };
                 await repo.CreateAsync(admin);

@@ -9,13 +9,14 @@ using Common.DTO;
 using Common;
 using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Data;
+using System.Runtime.CompilerServices;
 
 namespace TaxiUserData
 {
     /// <summary>
     /// An instance of this class is created for each service instance by the Service Fabric runtime.
     /// </summary>
-    internal sealed class TaxiUserData : StatefulService, IUserDataService
+    internal sealed class TaxiUserData : StatefulService, IUserDataService, IUserRideService
     {
         private readonly string _dictName = "usersDictionary";
         private readonly string _queueName = "usersQueue";
@@ -282,6 +283,19 @@ namespace TaxiUserData
         }
         #endregion
 
+        #region User-Ride service methods
+        public async Task<bool> DriverExistsAndVerifiedAsync(Guid id)
+        {
+            var driver = await GetAsync(id);
+            ServiceEventSource.Current.ServiceMessage(this.Context, $"User: {driver.Id}\nState: {driver.UserState}");
+            return driver.UserType == UserType.Driver && driver.UserState == UserState.Verified;
+        }
+        public async Task<bool> CheckPasengerTypeAsync(Guid id)
+        {
+            var passenger = await GetAsync(id);
+            return passenger.UserType == UserType.User;
+        }
+        #endregion
         #region Data seeding methods
         private async Task SeedDataFromMongoDBAsync(CancellationToken cancellationToken)
         {

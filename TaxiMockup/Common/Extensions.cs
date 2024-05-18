@@ -1,4 +1,5 @@
 ﻿using Common.Entities;
+using Common.MongoDB;
 using Common.Repository;
 using Common.Settings;
 using Microsoft.Extensions.Configuration;
@@ -8,7 +9,7 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 
-namespace Common.MongoDB
+namespace Common
 {
     public static class Extensions
     {
@@ -24,7 +25,7 @@ namespace Common.MongoDB
 
             var serviceSettings = configuration.GetSection(nameof(ServiceSettings)).Get<ServiceSettings>();
             var mongoDbSettings = configuration.GetSection(nameof(MongoDBSettings)).Get<MongoDBSettings>();
-            if(serviceSettings == null || mongoDbSettings == null) 
+            if (serviceSettings == null || mongoDbSettings == null)
             {
                 throw new ArgumentNullException(nameof(configuration));
             }
@@ -50,11 +51,32 @@ namespace Common.MongoDB
             services.AddSingleton<IRepository<T>>(ServiceProvider =>
             {
                 var database = ServiceProvider.GetService<IMongoDatabase>();
-                if(database == null)
+                if (database == null)
                 {
                     throw new FieldAccessException(nameof(database));
                 }
                 return new MongoRepository<T>(database, collectionName);
+            });
+            return services;
+        }
+
+        /// <summary>
+        /// Registers service connections settings for UserDataService
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        /// <exception cref="ApplicationException"></exception>
+        public static IServiceCollection AddUserDataServiceFactory(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddTransient(serviceProvider =>
+            {
+                var serviceSettings = configuration.GetSection(nameof(UserDataServiceSettings)).Get<UserDataServiceSettings>();
+                if (serviceSettings == null)
+                {
+                    throw new ApplicationException("User data service settings not set");
+                }
+                return serviceSettings;
             });
             return services;
         }

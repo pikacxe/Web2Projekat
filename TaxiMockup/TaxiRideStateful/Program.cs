@@ -3,8 +3,9 @@ using Common.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ServiceFabric.Services.Runtime;
-using Common.MongoDB;
 using Common.Repository;
+using Common;
+using Common.Settings;
 
 namespace TaxiRideData
 {
@@ -30,9 +31,11 @@ namespace TaxiRideData
                 int seedPeriod;
                 int.TryParse(configuration.GetSection("SeedPeriod").Value, out seedPeriod);
                 IRepository<Ride> repo = serviceProvider.GetService<IRepository<Ride>>() ?? throw new Exception("Database connection missing");
+                UserDataServiceSettings serviceSettings = serviceProvider.GetService<UserDataServiceSettings>() ?? throw new Exception("User service settings missing");    
+
 
                 ServiceRuntime.RegisterServiceAsync("TaxiRideDataType",
-                    context => new TaxiRideData(context, repo, seedPeriod)).GetAwaiter().GetResult();
+                    context => new TaxiRideData(context, repo,serviceSettings, seedPeriod)).GetAwaiter().GetResult();
 
                 ServiceEventSource.Current.ServiceTypeRegistered(Process.GetCurrentProcess().Id, typeof(TaxiRideData).Name);
 
@@ -51,6 +54,7 @@ namespace TaxiRideData
             IServiceCollection services = new ServiceCollection();
             services.AddMongo(configuration);
             services.AddMongoRepository<Ride>("Ride");
+            services.AddUserDataServiceFactory(configuration);
 
             return services.BuildServiceProvider();
         }

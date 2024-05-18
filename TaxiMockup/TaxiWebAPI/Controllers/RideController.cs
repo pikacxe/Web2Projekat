@@ -104,9 +104,13 @@ namespace TaxiWebAPI.Controllers
                 var _proxy = CreateProxy();
                 await _proxy.RequestRideAsync(proposedRide);
             }
-            catch (ArgumentNullException)
+            catch (AggregateException)
             {
                 return BadRequest("Invalid data");
+            }
+            catch (ApplicationException)
+            {
+                return BadRequest("Only users can request rides");
             }
             catch
             {
@@ -127,13 +131,17 @@ namespace TaxiWebAPI.Controllers
                 await _proxy.AcceptRideAsync(acceptedRide);
                 return Ok();
             }
-            catch (ArgumentNullException)
+            catch (AggregateException)
             {
                 return BadRequest("Invalid data");
             }
             catch (KeyNotFoundException)
             {
-                return BadRequest("Ride not found");
+                return NotFound("Ride not found");
+            }
+            catch (ApplicationException)
+            {
+                return BadRequest("Driver not verified");
             }
             catch
             {
@@ -152,13 +160,13 @@ namespace TaxiWebAPI.Controllers
                 var _proxy = CreateProxy();
                 await _proxy.FinishRideAsync(finishedRideDTO);
             }
-            catch (ArgumentNullException)
+            catch (AggregateException)
             {
                 return BadRequest("Invalid data");
             }
             catch (KeyNotFoundException)
             {
-                return BadRequest("Ride not found");
+                return NotFound("Ride not found");
             }
             catch
             {
