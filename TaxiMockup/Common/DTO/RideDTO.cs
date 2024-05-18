@@ -15,9 +15,6 @@ namespace Common.DTO
     public class ProposedRideRequest
     {
         [DataMember]
-        [Required(ErrorMessage = "Ride id is required")]
-        public Guid RideId { get; set; }
-        [DataMember]
         [Required(ErrorMessage = "Passenger id is required")]
         public Guid PassengerId { get; set; }
         [DataMember]
@@ -90,6 +87,9 @@ namespace Common.DTO
         [DataMember]
         [Required(ErrorMessage ="Ride id is required")]
         public Guid RideId { get; set; }
+        [DataMember]
+        [Required(ErrorMessage = "Passenger id is required")]
+        public Guid PassengerId { get; set; }
         [DataMember]
         [Range(0,10,ErrorMessage ="Rating must be on a scale 1 to 10")]
         public int Rating { get; set; }

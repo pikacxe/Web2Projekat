@@ -7,7 +7,6 @@ using Contracts;
 using Common.Entities;
 using Common.DTO;
 using Common;
-using System.Diagnostics;
 using Microsoft.ServiceFabric.Data;
 using Common.Repository;
 
@@ -115,6 +114,7 @@ namespace TaxiRideData
             {
                 throw new ArgumentNullException(nameof(proposedRide));
             }
+            // TODO Check that passenger is not of type driver
             Ride newRide = new Ride
             {
                 Id = Guid.NewGuid(),
@@ -142,6 +142,7 @@ namespace TaxiRideData
             {
                 throw new ArgumentNullException(nameof(acceptRideDTO));
             }
+            // TODO Check that driver is verified before procceding
             var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
             Ride acceptedRide;
             using (ITransaction tx = StateManager.CreateTransaction())
@@ -171,6 +172,7 @@ namespace TaxiRideData
             {
                 throw new ArgumentNullException(nameof(finishedRideDTO));
             }
+            // TODO Check that driver is verified before procceding
             var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
             Ride finishedRide;
             using (ITransaction tx = StateManager.CreateTransaction())
@@ -180,6 +182,10 @@ namespace TaxiRideData
                 if (ride.HasValue)
                 {
                     finishedRide = ride.Value;
+                    if(finishedRide.PassengerId != finishedRideDTO.PassengerId)
+                    {
+                        throw new ArgumentException("Passenger Ids do not match");
+                    }
                     finishedRide.RideState = RideState.Finished;
                     finishedRide.Rating = finishedRideDTO.Rating;
                     finishedRide._FinishedAt = DateTimeOffset.Now;

@@ -1,13 +1,10 @@
 using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
-using System.Threading;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Common.MongoDB;
 using Microsoft.Extensions.Configuration;
 using Common.Repository;
 using Common.Entities;
-using System.Fabric;
-using System.Runtime.CompilerServices;
 
 namespace TaxiUserData
 {
@@ -82,12 +79,9 @@ namespace TaxiUserData
 
         private static IConfiguration SetupConfiguration()
         {
-            var settingsPath = Path.Combine(
-            FabricRuntime.GetActivationContext().GetCodePackageObject("Code").Path,
-            "appsettings.json");
-
             var configuration = new ConfigurationBuilder()
-                .AddJsonFile(settingsPath)
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional:false)
                 .Build();
             return configuration;
         }
