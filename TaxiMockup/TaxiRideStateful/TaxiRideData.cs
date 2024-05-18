@@ -9,6 +9,7 @@ using Common.DTO;
 using Common;
 using System.Diagnostics;
 using Microsoft.ServiceFabric.Data;
+using Common.Repository;
 
 namespace TaxiRideData
 {
@@ -17,10 +18,15 @@ namespace TaxiRideData
     /// </summary>
     internal sealed class TaxiRideData : StatefulService, IRideDataService
     {
-        private readonly string _dictName = "rides";
-        public TaxiRideData(StatefulServiceContext context)
+        private readonly string _dictName = "ridesDictionary";
+        private readonly string _queueName = "ridesQueue";
+        private readonly IRepository<Ride> _repo;
+        private readonly int seedPeriod;
+        public TaxiRideData(StatefulServiceContext context, IRepository<Ride> repo, int seedPeriod)
             : base(context)
         {
+            _repo = repo;
+            this.seedPeriod = seedPeriod;
         }
         #region Ride service methods
         public async Task<IEnumerable<Ride>> GetAllRidesAsync()
@@ -127,6 +133,7 @@ namespace TaxiRideData
                 await rides.AddAsync(tx, newRide.Id, newRide);
                 await tx.CommitAsync();
             }
+            await QueueDataForLaterProcessingAsync(newRide, CancellationToken.None);
         }
 
         public async Task AcceptRideAsync(AcceptRideRequest acceptRideDTO)
@@ -136,13 +143,14 @@ namespace TaxiRideData
                 throw new ArgumentNullException(nameof(acceptRideDTO));
             }
             var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
+            Ride acceptedRide;
             using (ITransaction tx = StateManager.CreateTransaction())
             {
 
                 var ride = await rides.TryGetValueAsync(tx, acceptRideDTO.RideId);
                 if (ride.HasValue)
                 {
-                    Ride acceptedRide = ride.Value;
+                    acceptedRide = ride.Value;
                     acceptedRide.DriverId = acceptRideDTO.DriverID;
                     acceptedRide.DriverETA = acceptedRide.DriverETA;
                     acceptedRide.RideState = RideState.InProgress;
@@ -154,6 +162,7 @@ namespace TaxiRideData
                     throw new KeyNotFoundException(nameof(acceptRideDTO));
                 }
             }
+            await QueueDataForLaterProcessingAsync(acceptedRide, CancellationToken.None);
         }
 
         public async Task FinishRideAsync(FinishedRideRequest finishedRideDTO)
@@ -163,13 +172,14 @@ namespace TaxiRideData
                 throw new ArgumentNullException(nameof(finishedRideDTO));
             }
             var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
+            Ride finishedRide;
             using (ITransaction tx = StateManager.CreateTransaction())
             {
 
                 var ride = await rides.TryGetValueAsync(tx, finishedRideDTO.RideId);
                 if (ride.HasValue)
                 {
-                    Ride finishedRide = ride.Value;
+                    finishedRide = ride.Value;
                     finishedRide.RideState = RideState.Finished;
                     finishedRide.Rating = finishedRideDTO.Rating;
                     finishedRide._FinishedAt = DateTimeOffset.Now;
@@ -181,8 +191,67 @@ namespace TaxiRideData
                     throw new KeyNotFoundException(nameof(finishedRideDTO));
                 }
             }
+            await QueueDataForLaterProcessingAsync(finishedRide, CancellationToken.None);
         }
 
+        #endregion
+        #region Data seeding methods
+        private async Task SeedDataFromMongoDBAsync(CancellationToken cancellationToken)
+        {
+            var data = await _repo.GetAllAsync();
+            await SeedDataToServiceFabricAsync(data, cancellationToken);
+        }
+        private async Task SeedDataToServiceFabricAsync(IEnumerable<Ride> data, CancellationToken cancellationToken)
+        {
+            var myDictionary = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
+            using (var tx = StateManager.CreateTransaction())
+            {
+                foreach (var item in data)
+                {
+                    await myDictionary.AddOrUpdateAsync(tx, item.Id, item, (key, value) => item);
+                }
+
+                await tx.CommitAsync();
+            }
+        }
+        private async Task QueueDataForLaterProcessingAsync(Ride data, CancellationToken cancellationToken)
+        {
+            var myQueue = await StateManager.GetOrAddAsync<IReliableQueue<Ride>>(_queueName);
+            using (var tx = StateManager.CreateTransaction())
+            {
+                await myQueue.EnqueueAsync(tx, data);
+                await tx.CommitAsync();
+            }
+        }
+        private async Task ProcessQueuedDataAsync(CancellationToken cancellationToken)
+        {
+            var myQueue = await StateManager.GetOrAddAsync<IReliableQueue<Ride>>(_queueName);
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                using (var tx = StateManager.CreateTransaction())
+                {
+                    var result = await myQueue.TryDequeueAsync(tx, TimeSpan.FromSeconds(5), cancellationToken);
+                    if (result.HasValue)
+                    {
+                        Ride ride = result.Value;
+                        ServiceEventSource.Current.ServiceMessage(this.Context, $"======== Item from '{_queueName}': {ride.Id} ========");
+                        if (ride.StartDestination == "toDelete")
+                        {
+                            await _repo.DeleteAsync(ride.Id);
+                        }
+                        else
+                        {
+                            await _repo.UpdateAsync(ride);
+                        }
+                        await tx.CommitAsync();
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+        }
         #endregion
 
         /// <summary>
@@ -202,26 +271,17 @@ namespace TaxiRideData
         /// This method executes when this replica of your service becomes primary and has write status.
         /// </summary>
         /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service replica.</param>
-        //protected override async Task RunAsync(CancellationToken cancellationToken)
-        //{
+        protected override async Task RunAsync(CancellationToken cancellationToken)
+        {
+            // Read data from MongoDB at startup
+            await SeedDataFromMongoDBAsync(cancellationToken);
 
-        //    var rides = await this.StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
-
-        //    while (true)
-        //    {
-        //        cancellationToken.ThrowIfCancellationRequested();
-
-        //        using (var tx = this.StateManager.CreateTransaction())
-        //        {
-        //            // TODO: Save state to db
-
-        //            // If an exception is thrown before calling CommitAsync, the transaction aborts, all changes are 
-        //            // discarded, and nothing is saved to the secondary replicas.
-        //            await tx.CommitAsync();
-        //        }
-
-        //        await Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
-        //    }
-        //}
+            // Example loop to periodically process queued data (if any)
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                await ProcessQueuedDataAsync(cancellationToken);
+                await Task.Delay(TimeSpan.FromSeconds(seedPeriod), cancellationToken);
+            }
+        }
     }
 }

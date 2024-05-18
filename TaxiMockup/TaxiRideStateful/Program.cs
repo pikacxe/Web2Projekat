@@ -1,5 +1,12 @@
 using System.Diagnostics;
+using Common.Entities;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using System.Fabric;
 using Microsoft.ServiceFabric.Services.Runtime;
+using Common.MongoDB;
+using Common.Repository;
+using Microsoft.ServiceFabric.Services.Communication.Client;
 
 namespace TaxiRideData
 {
@@ -17,8 +24,17 @@ namespace TaxiRideData
                 // When Service Fabric creates an instance of this service type,
                 // an instance of the class is created in this host process.
 
+                // Setup configuration
+                IConfiguration configuration = SetupConfiguration();
+
+                // Register services
+                IServiceProvider serviceProvider = SetupServices(configuration);
+                int seedPeriod;
+                int.TryParse(configuration.GetSection("SeedPeriod").Value, out seedPeriod);
+                IRepository<Ride> repo = serviceProvider.GetService<IRepository<Ride>>() ?? throw new Exception("Database connection missing");
+
                 ServiceRuntime.RegisterServiceAsync("TaxiRideDataType",
-                    context => new TaxiRideData(context)).GetAwaiter().GetResult();
+                    context => new TaxiRideData(context, repo, seedPeriod)).GetAwaiter().GetResult();
 
                 ServiceEventSource.Current.ServiceTypeRegistered(Process.GetCurrentProcess().Id, typeof(TaxiRideData).Name);
 
@@ -30,6 +46,27 @@ namespace TaxiRideData
                 ServiceEventSource.Current.ServiceHostInitializationFailed(e.ToString());
                 throw;
             }
+        }
+
+        private static IServiceProvider SetupServices(IConfiguration configuration)
+        {
+            IServiceCollection services = new ServiceCollection();
+            services.AddMongo(configuration);
+            services.AddMongoRepository<Ride>("Ride");
+
+            return services.BuildServiceProvider();
+        }
+
+        private static IConfiguration SetupConfiguration()
+        {
+            var settingsPath = Path.Combine(
+            FabricRuntime.GetActivationContext().GetCodePackageObject("Code").Path,
+            "appsettings.json");
+
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile(settingsPath)
+                .Build();
+            return configuration;
         }
     }
 }

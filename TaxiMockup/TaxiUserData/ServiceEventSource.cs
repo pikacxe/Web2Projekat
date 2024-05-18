@@ -52,7 +52,7 @@ internal sealed class ServiceEventSource : EventSource
     }
 
     [NonEvent]
-    public void ServiceMessage(StatelessServiceContext serviceContext, string message, params object[] args)
+    public void ServiceMessage(StatefulServiceContext serviceContext, string message, params object[] args)
     {
         if (this.IsEnabled())
         {
@@ -60,7 +60,7 @@ internal sealed class ServiceEventSource : EventSource
             ServiceMessage(
                 serviceContext.ServiceName.ToString(),
                 serviceContext.ServiceTypeName,
-                serviceContext.InstanceId,
+                serviceContext.ReplicaId,
                 serviceContext.PartitionId,
                 serviceContext.CodePackageActivationContext.ApplicationName,
                 serviceContext.CodePackageActivationContext.ApplicationTypeName,

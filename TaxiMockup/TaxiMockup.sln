@@ -7,7 +7,7 @@ Project("{A07B5EB6-E848-4116-A8D0-A826331D98C6}") = "TaxiMockup", "TaxiMockup\Ta
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaxiWebAPI", "TaxiWebAPI\TaxiWebAPI.csproj", "{A989255C-7B28-4A2D-9D4E-C05BFE723D18}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaxiRideStateful", "TaxiRideStateful\TaxiRideStateful.csproj", "{293BD4C7-F442-41B2-ACA0-DCECEAF810A6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaxiRideData", "TaxiRideStateful\TaxiRideData.csproj", "{293BD4C7-F442-41B2-ACA0-DCECEAF810A6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "Common\Common.csproj", "{A3EB7AEF-980A-44D2-A7BD-1B21742436C2}"
 EndProject

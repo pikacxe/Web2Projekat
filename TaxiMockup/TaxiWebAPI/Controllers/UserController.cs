@@ -149,9 +149,9 @@ namespace TaxiWebAPI.Controllers
             }
         }
 
-        // PUT /users/update
-        [HttpPut("/{id}")]
-        [Route("update")]
+        // PUT /users/:id/update
+        [HttpPut]
+        [Route("{id}/update")]
         [Authorize]
         public async Task<ActionResult> UpdateUser(Guid id, UserInfo userInfoDTO)
         {
@@ -194,10 +194,6 @@ namespace TaxiWebAPI.Controllers
         [Authorize]
         public async Task<ActionResult> ChangeUserPassword(Guid id, UserPasswordChangeRequest request)
         {
-            if(id != request.UserId)
-            {
-                return Unauthorized("User ids do not match");
-            }
             var requestUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if(requestUserId == null)
             {

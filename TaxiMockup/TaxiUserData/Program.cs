@@ -1,5 +1,13 @@
 using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
+using System.Threading;
 using Microsoft.ServiceFabric.Services.Runtime;
+using Common.MongoDB;
+using Microsoft.Extensions.Configuration;
+using Common.Repository;
+using Common.Entities;
+using System.Fabric;
+using System.Runtime.CompilerServices;
 
 namespace TaxiUserData
 {
@@ -18,8 +26,20 @@ namespace TaxiUserData
                 // When Service Fabric creates an instance of this service type,
                 // an instance of the class is created in this host process.
 
+                // Setup configuration
+                IConfiguration configuration = SetupConfiguration();
+
+                // Register services
+                IServiceProvider serviceProvider = SetupServices(configuration);
+                int seedPeriod;
+                int.TryParse(configuration.GetSection("SeedPeriod").Value, out seedPeriod);
+                IRepository<User> repo = serviceProvider.GetService<IRepository<User>>() ?? throw new Exception("Database connection missing");
+
+                // Ensure single admin is created
+                EnsureAdminCreation(repo).Wait();
+
                 ServiceRuntime.RegisterServiceAsync("TaxiUserDataType",
-                    context => new TaxiUserData(context)).GetAwaiter().GetResult();
+                    context => new TaxiUserData(context, repo, seedPeriod)).GetAwaiter().GetResult();
 
                 ServiceEventSource.Current.ServiceTypeRegistered(Process.GetCurrentProcess().Id, typeof(TaxiUserData).Name);
 
@@ -31,6 +51,45 @@ namespace TaxiUserData
                 ServiceEventSource.Current.ServiceHostInitializationFailed(e.ToString());
                 throw;
             }
+        }
+
+        private static async Task EnsureAdminCreation(IRepository<User> repo)
+        {
+            User? exists = await repo.GetAsync(u => u.UserType == Common.UserType.Admin) as User;
+            if (exists == null)
+            {
+                User admin = new User()
+                {
+                    Id = Guid.NewGuid(),
+                    Email = "admin@admin.com",
+                    Username = "admin",
+                    Password = "password",
+                    UserType = Common.UserType.Admin,
+                    _CreatedAt = DateTime.Now,
+                };
+                await repo.CreateAsync(admin);
+            }
+        }
+
+        private static IServiceProvider SetupServices(IConfiguration configuration)
+        {
+            IServiceCollection services = new ServiceCollection();
+            services.AddMongo(configuration);
+            services.AddMongoRepository<User>("User");
+
+            return services.BuildServiceProvider();
+        }
+
+        private static IConfiguration SetupConfiguration()
+        {
+            var settingsPath = Path.Combine(
+            FabricRuntime.GetActivationContext().GetCodePackageObject("Code").Path,
+            "appsettings.json");
+
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile(settingsPath)
+                .Build();
+            return configuration;
         }
     }
 }

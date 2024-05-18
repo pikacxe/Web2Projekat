@@ -17,22 +17,28 @@ namespace TaxiUserData
     /// </summary>
     internal sealed class TaxiUserData : StatefulService, IUserDataService
     {
-        private readonly string _dictName = "users";
-        public TaxiUserData(StatefulServiceContext context)
+        private readonly string _dictName = "usersDictionary";
+        private readonly string _queueName = "usersQueue";
+        private readonly IRepository<User> _repo;
+        private readonly int seedPeriod;
+        public TaxiUserData(StatefulServiceContext context, IRepository<User> repo, int seedPeriod)
             : base(context)
         {
+            _repo = repo;
+            this.seedPeriod = seedPeriod;
         }
 
         #region User service methods
         public async Task ChangeUserPasswordAsync(UserPasswordChangeRequest userPasswordChangeDTO)
         {
             var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
+            User existingUser;
             using (ITransaction tx = StateManager.CreateTransaction())
             {
                 var user = await users.TryGetValueAsync(tx, userPasswordChangeDTO.UserId);
                 if (user.HasValue)
                 {
-                    var existingUser = user.Value;
+                    existingUser = user.Value;
                     // TODO: Better password validation with hashing (bcrypt?)
                     if (existingUser.Password != userPasswordChangeDTO.OldPassword)
                     {
@@ -40,7 +46,7 @@ namespace TaxiUserData
                     }
                     existingUser.Password = userPasswordChangeDTO.NewPassword;
                     existingUser._UpdatedAt = DateTimeOffset.UtcNow;
-                    await users.AddOrUpdateAsync(tx, existingUser.Id, existingUser, (u1, u2) => u2);
+                    await users.AddOrUpdateAsync(tx, existingUser.Id, existingUser, (key, value) => existingUser);
                     await tx.CommitAsync();
                 }
                 else
@@ -48,8 +54,8 @@ namespace TaxiUserData
                     throw new KeyNotFoundException("User not found");
                 }
             }
+            await QueueDataForLaterProcessingAsync(existingUser, CancellationToken.None);
         }
-
         public async Task<AuthResponse> ValidateLoginParamsAsync(UserLoginRequest userLoginDTO)
         {
             var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
@@ -72,6 +78,7 @@ namespace TaxiUserData
                                 Username = currentUser.Username,
                                 UserRole = currentUser.UserType.ToString()
                             };
+                            enumerator.Dispose();
                             return authResponse;
                         }
                     }
@@ -79,7 +86,6 @@ namespace TaxiUserData
                 throw new KeyNotFoundException(nameof(User));
             }
         }
-
         public async Task<IEnumerable<UserInfo>> GetAllAsync()
         {
             var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
@@ -97,7 +103,6 @@ namespace TaxiUserData
                 return result;
             }
         }
-
         public async Task<IEnumerable<UserInfo>> GetAllUnverifiedAsync()
         {
             var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
@@ -118,7 +123,6 @@ namespace TaxiUserData
                 return result;
             }
         }
-
         public async Task<UserInfo> GetAsync(Guid id)
         {
             var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
@@ -136,7 +140,6 @@ namespace TaxiUserData
                 }
             }
         }
-
         public async Task<UserStateResponse> GetUserStateAsync(Guid id)
         {
             var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
@@ -154,7 +157,6 @@ namespace TaxiUserData
                 }
             }
         }
-
         public async Task RegisterNewUserAsync(RegisterUserRequest registerUserDTO)
         {
             if (registerUserDTO == null)
@@ -162,26 +164,27 @@ namespace TaxiUserData
                 throw new ArgumentNullException(nameof(registerUserDTO));
             }
             var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
+            // TODO: validate data
+            User user = new User
+            {
+                Id = Guid.NewGuid(),
+                Username = registerUserDTO.Username,
+                Email = registerUserDTO.Email,
+                Password = registerUserDTO.Password,
+                Address = registerUserDTO.Address,
+                DateOfBirth = registerUserDTO.DateOfBirth,
+                Fullname = registerUserDTO.Fullname,
+                UserPicture = registerUserDTO.UserPicture,
+                UserType = registerUserDTO.UserType,
+                UserState = registerUserDTO.UserType == UserType.Driver ? UserState.Unverified : UserState.Default,
+                _CreatedAt = DateTimeOffset.UtcNow
+            };
             using (ITransaction tx = StateManager.CreateTransaction())
             {
-                // TODO: validate data
-                User user = new User
-                {
-                    Id = Guid.NewGuid(),
-                    Username = registerUserDTO.Username,
-                    Email = registerUserDTO.Email,
-                    Password = registerUserDTO.Password,
-                    Address = registerUserDTO.Address,
-                    DateOfBirth = registerUserDTO.DateOfBirth,
-                    Fullname = registerUserDTO.Fullname,
-                    UserPicture = registerUserDTO.UserPicture,
-                    UserType = registerUserDTO.UserType,
-                    UserState = registerUserDTO.UserType == UserType.Driver ? UserState.Unverified : UserState.Default,
-                    _CreatedAt = DateTimeOffset.UtcNow
-                };
                 await users.AddAsync(tx, user.Id, user);
                 await tx.CommitAsync();
             }
+            await QueueDataForLaterProcessingAsync(user, CancellationToken.None);
         }
         public async Task UpdateUserAsync(UserInfo userDTO)
         {
@@ -190,12 +193,13 @@ namespace TaxiUserData
                 throw new ArgumentNullException(nameof(userDTO));
             }
             var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
+            User existingUser;
             using (ITransaction tx = StateManager.CreateTransaction())
             {
                 var user = await users.TryGetValueAsync(tx, userDTO.Id);
                 if (user.HasValue)
                 {
-                    var existingUser = user.Value;
+                    existingUser = user.Value;
                     existingUser.Username = userDTO.Username;
                     existingUser.Email = userDTO.Email;
                     existingUser.Address = userDTO.Address;
@@ -203,7 +207,7 @@ namespace TaxiUserData
                     existingUser.Fullname = userDTO.Fullname;
                     existingUser.UserPicture = userDTO.UserPicture;
                     existingUser._UpdatedAt = DateTimeOffset.UtcNow;
-                    await users.AddOrUpdateAsync(tx, existingUser.Id, existingUser, (u1, u2) => u2);
+                    await users.AddOrUpdateAsync(tx, existingUser.Id, existingUser, (key, value) => existingUser);
                     await tx.CommitAsync();
                 }
                 else
@@ -211,11 +215,12 @@ namespace TaxiUserData
                     throw new KeyNotFoundException();
                 }
             }
+            await QueueDataForLaterProcessingAsync(existingUser, CancellationToken.None);
         }
-
         public async Task DeleteUserAsync(Guid id)
         {
             var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
+            User user;
             using (ITransaction tx = StateManager.CreateTransaction())
             {
                 var res = await users.TryRemoveAsync(tx, id);
@@ -223,24 +228,26 @@ namespace TaxiUserData
                 {
                     throw new KeyNotFoundException(nameof(User));
                 }
+                user = res.Value;
+                user.Username = "toDelete";
                 await tx.CommitAsync();
             }
+            await QueueDataForLaterProcessingAsync(user, CancellationToken.None);
         }
-
-
         public async Task VerifyUserAsync(Guid userId)
         {
             var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
+            User existingUser;
             using (ITransaction tx = StateManager.CreateTransaction())
             {
                 var user = await users.TryGetValueAsync(tx, userId);
                 if (user.HasValue)
                 {
-                    var existingUser = user.Value;
+                    existingUser = user.Value;
                     existingUser.UserState = UserState.Verified;
                     existingUser._VerifiedAt = DateTimeOffset.UtcNow;
                     existingUser._UpdatedAt = DateTimeOffset.UtcNow;
-                    await users.AddOrUpdateAsync(tx,userId,existingUser,(u1, u2) => u2);
+                    await users.AddOrUpdateAsync(tx, userId, existingUser, (key, value) => existingUser);
                     await tx.CommitAsync();
                 }
                 else
@@ -248,25 +255,87 @@ namespace TaxiUserData
                     throw new KeyNotFoundException(nameof(User));
                 }
             }
+            await QueueDataForLaterProcessingAsync(existingUser, CancellationToken.None);
         }
         public async Task BanUserAsync(Guid userId)
         {
             var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
+            User existingUser;
             using (ITransaction tx = StateManager.CreateTransaction())
             {
                 var user = await users.TryGetValueAsync(tx, userId);
                 if (user.HasValue)
                 {
-                    var existingUser = user.Value;
+                    existingUser = user.Value;
                     existingUser.UserState = UserState.Denied;
                     existingUser._VerifiedAt = null;
                     existingUser._UpdatedAt = DateTimeOffset.UtcNow;
-                    await users.AddOrUpdateAsync(tx, userId, existingUser, (u1, u2) => u2);
+                    await users.AddOrUpdateAsync(tx, userId, existingUser, (key, value) => existingUser);
                     await tx.CommitAsync();
                 }
                 else
                 {
                     throw new KeyNotFoundException(nameof(User));
+                }
+            }
+            await QueueDataForLaterProcessingAsync(existingUser, CancellationToken.None);
+        }
+        #endregion
+
+        #region Data seeding methods
+        private async Task SeedDataFromMongoDBAsync(CancellationToken cancellationToken)
+        {
+            var data = await _repo.GetAllAsync();
+            await SeedDataToServiceFabricAsync(data, cancellationToken);
+        }
+        private async Task SeedDataToServiceFabricAsync(IEnumerable<User> data, CancellationToken cancellationToken)
+        {
+            var myDictionary = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
+            using (var tx = StateManager.CreateTransaction())
+            {
+                foreach (var item in data)
+                {
+                    await myDictionary.AddOrUpdateAsync(tx, item.Id, item, (key, value) => item);
+                }
+
+                await tx.CommitAsync();
+            }
+        }
+        private async Task QueueDataForLaterProcessingAsync(User data, CancellationToken cancellationToken)
+        {
+            var myQueue = await StateManager.GetOrAddAsync<IReliableQueue<User>>(_queueName);
+            using (var tx = StateManager.CreateTransaction())
+            {
+                await myQueue.EnqueueAsync(tx, data);
+                await tx.CommitAsync();
+            }
+        }
+        private async Task ProcessQueuedDataAsync(CancellationToken cancellationToken)
+        {
+            var myQueue = await StateManager.GetOrAddAsync<IReliableQueue<User>>(_queueName);
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                using (var tx = StateManager.CreateTransaction())
+                {
+                    var result = await myQueue.TryDequeueAsync(tx, TimeSpan.FromSeconds(5), cancellationToken);
+                    if (result.HasValue)
+                    {
+                        User user = result.Value;
+                        ServiceEventSource.Current.ServiceMessage(this.Context, $"======== Item from '{_queueName}': {user.Id} ========");
+                        if (user.Username == "toDelete")
+                        {
+                            await _repo.DeleteAsync(user.Id);
+                        }
+                        else
+                        {
+                            await _repo.UpdateAsync(user);
+                        }
+                        await tx.CommitAsync();
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
             }
         }
@@ -288,17 +357,17 @@ namespace TaxiUserData
         /// This is the main entry point for your service instance.
         /// </summary>
         /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service instance.</param>
-        //protected override async Task RunAsync(CancellationToken cancellationToken)
-        //{
-        //    // TODO: Replace the following sample code with your own logic 
-        //    //       or remove this RunAsync override if it's not needed in your service.
+        protected override async Task RunAsync(CancellationToken cancellationToken)
+        {
+            // Read data from MongoDB at startup
+            await SeedDataFromMongoDBAsync(cancellationToken);
 
-        //    while (true)
-        //    {
-        //        cancellationToken.ThrowIfCancellationRequested();
-
-        //        await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
-        //    }
-        //}
+            // Example loop to periodically process queued data (if any)
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                await ProcessQueuedDataAsync(cancellationToken);
+                await Task.Delay(TimeSpan.FromSeconds(seedPeriod), cancellationToken);
+            }
+        }
     }
 }

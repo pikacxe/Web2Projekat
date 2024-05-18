@@ -10,6 +10,10 @@ namespace Common.MongoDB
         private readonly IMongoCollection<T> dbCollection;
 
         private readonly FilterDefinitionBuilder<T> filterBuilder = Builders<T>.Filter;
+        private readonly ReplaceOptions options = new ReplaceOptions()
+        {
+            IsUpsert = true,
+        };
 
         public MongoRepository(IMongoDatabase database, string collectionName)
         {
@@ -60,7 +64,7 @@ namespace Common.MongoDB
             }
             
             FilterDefinition<T> filter = filterBuilder.Eq(existingEntity => existingEntity.Id, entity.Id);
-            await dbCollection.ReplaceOneAsync(filter, entity);
+            await dbCollection.ReplaceOneAsync(filter, entity, options);
         }
     }
 }
