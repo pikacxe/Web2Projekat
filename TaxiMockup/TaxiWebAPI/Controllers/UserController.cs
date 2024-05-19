@@ -44,7 +44,7 @@ namespace TaxiWebAPI.Controllers
             }
             catch
             {
-                return StatusCode(500);
+                return StatusCode(500, "An error occurred while processing your request.");
             }
         }
 
@@ -59,13 +59,26 @@ namespace TaxiWebAPI.Controllers
                 var user = await _proxy.GetAsync(id);
                 return Ok(user);
             }
-            catch (AggregateException)
+            catch (AggregateException ex)
             {
-                return NotFound("User not found");
+                foreach (var innerEx in ex.InnerExceptions)
+                {
+                    if (innerEx is KeyNotFoundException)
+                    {
+                        return NotFound("The requested user was not found.");
+                    }
+                    else if (innerEx is ArgumentNullException)
+                    {
+                        return BadRequest("Invalid data");
+                    }
+                    // Add more specific exceptions as needed.
+                }
+                // If none of the inner exceptions are handled specifically, return a generic server error.
+                return StatusCode(500, "An error occurred while processing your request.");
             }
-            catch (Exception)
+            catch
             {
-                return StatusCode(500);
+                return StatusCode(500, "An error occurred while processing your request.");
             }
         }
 
@@ -82,7 +95,7 @@ namespace TaxiWebAPI.Controllers
             }
             catch
             {
-                return StatusCode(500);
+                return StatusCode(500, "An error occurred while processing your request.");
             }
         }
 
@@ -103,14 +116,26 @@ namespace TaxiWebAPI.Controllers
                 response.Token = CreateToken(response);
                 return Ok(response);
             }
-            catch (AggregateException)
+            catch (AggregateException ex)
             {
-                // TODO better handling
-                return NotFound("Invalid email or password");
+                foreach (var innerEx in ex.InnerExceptions)
+                {
+                    if (innerEx is KeyNotFoundException)
+                    {
+                        return NotFound("The requested user was not found.");
+                    }
+                    else if (innerEx is ArgumentNullException)
+                    {
+                        return BadRequest("Invalid data");
+                    }
+                    // Add more specific exceptions as needed.
+                }
+                // If none of the inner exceptions are handled specifically, return a generic server error.
+                return StatusCode(500, "An error occurred while processing your request.");
             }
             catch
             {
-                return StatusCode(500);
+                return StatusCode(500, "An error occurred while processing your request.");
             }
         }
 
@@ -126,14 +151,26 @@ namespace TaxiWebAPI.Controllers
                 var state = await _proxy.GetUserStateAsync(id);
                 return Ok(state);
             }
-            catch (AggregateException)
+            catch (AggregateException ex)
             {
-                // TODO better handling
-                return NotFound("User not found");
+                foreach (var innerEx in ex.InnerExceptions)
+                {
+                    if (innerEx is KeyNotFoundException)
+                    {
+                        return NotFound("The requested user was not found.");
+                    }
+                    else if (innerEx is ArgumentNullException)
+                    {
+                        return BadRequest("Invalid data");
+                    }
+                    // Add more specific exceptions as needed.
+                }
+                // If none of the inner exceptions are handled specifically, return a generic server error.
+                return StatusCode(500, "An error occurred while processing your request.");
             }
             catch
             {
-                return StatusCode(500);
+                return StatusCode(500, "An error occurred while processing your request.");
             }
         }
 
@@ -147,16 +184,29 @@ namespace TaxiWebAPI.Controllers
             try
             {
                 var _proxy = CreateProxy(Guid.NewGuid());
-                await _proxy.RegisterNewUserAsync(registerUserDTO);
-                return NoContent();
+                var id = await _proxy.RegisterNewUserAsync(registerUserDTO);
+                return StatusCode(201,new { id = id });
             }
-            catch (ArgumentNullException)
+            catch (AggregateException ex)
             {
-                return BadRequest("Invalid data");
+                foreach (var innerEx in ex.InnerExceptions)
+                {
+                    if (innerEx is KeyNotFoundException)
+                    {
+                        return NotFound("The requested user was not found.");
+                    }
+                    else if (innerEx is ArgumentNullException)
+                    {
+                        return BadRequest("Invalid data");
+                    }
+                    // Add more specific exceptions as needed.
+                }
+                // If none of the inner exceptions are handled specifically, return a generic server error.
+                return StatusCode(500, "An error occurred while processing your request.");
             }
             catch
             {
-                return StatusCode(500);
+                return StatusCode(500, "An error occurred while processing your request.");
             }
         }
 
@@ -164,9 +214,9 @@ namespace TaxiWebAPI.Controllers
         [HttpPut]
         [Route("{id}/update")]
         [Authorize]
-        public async Task<ActionResult> UpdateUser(Guid id, UserInfo userInfoDTO)
+        public async Task<ActionResult> UpdateUser(Guid id, UpdateUserReques updateUserDTO)
         {
-            if(id != userInfoDTO.Id)
+            if(id != updateUserDTO.Id)
             {
                 return Unauthorized("User ids does not match");
             }
@@ -182,21 +232,29 @@ namespace TaxiWebAPI.Controllers
             try
             {
                 var _proxy = CreateProxy(id);
-                await _proxy.UpdateUserAsync(userInfoDTO);
+                await _proxy.UpdateUserAsync(updateUserDTO);
                 return NoContent();
             }
-            catch (ArgumentNullException)
+            catch (AggregateException ex)
             {
-                return BadRequest("Invalid data");
-            }
-            catch (AggregateException)
-            {
-                // TODO better handling
-                return NotFound("User not found");
+                foreach (var innerEx in ex.InnerExceptions)
+                {
+                    if (innerEx is KeyNotFoundException)
+                    {
+                        return NotFound("The requested user was not found.");
+                    }
+                    else if (innerEx is ArgumentNullException)
+                    {
+                        return BadRequest("Invalid data");
+                    }
+                    // Add more specific exceptions as needed.
+                }
+                // If none of the inner exceptions are handled specifically, return a generic server error.
+                return StatusCode(500, "An error occurred while processing your request.");
             }
             catch
             {
-                return StatusCode(500);
+                return StatusCode(500, "An error occurred while processing your request.");
             }
         }
 
@@ -221,13 +279,26 @@ namespace TaxiWebAPI.Controllers
                 await _proxy.ChangeUserPasswordAsync(request);
                 return NoContent();
             }
-            catch (AggregateException)
+            catch (AggregateException ex)
             {
-                return NotFound("User not found");
+                foreach (var innerEx in ex.InnerExceptions)
+                {
+                    if (innerEx is KeyNotFoundException)
+                    {
+                        return NotFound("The requested user was not found.");
+                    }
+                    else if (innerEx is ArgumentNullException)
+                    {
+                        return BadRequest("Invalid data");
+                    }
+                    // Add more specific exceptions as needed.
+                }
+                // If none of the inner exceptions are handled specifically, return a generic server error.
+                return StatusCode(500, "An error occurred while processing your request.");
             }
             catch
             {
-                return StatusCode(500);
+                return StatusCode(500, "An error occurred while processing your request.");
             }
         }
 
@@ -243,14 +314,26 @@ namespace TaxiWebAPI.Controllers
                 await _proxy.VerifyUserAsync(id);
                 return NoContent();
             }
-            catch (AggregateException)
+            catch (AggregateException ex)
             {
-                // TODO better handling
-                return NotFound("User not found");
+                foreach (var innerEx in ex.InnerExceptions)
+                {
+                    if (innerEx is KeyNotFoundException)
+                    {
+                        return NotFound("The requested user was not found.");
+                    }
+                    else if (innerEx is ArgumentNullException)
+                    {
+                        return BadRequest("Invalid data");
+                    }
+                    // Add more specific exceptions as needed.
+                }
+                // If none of the inner exceptions are handled specifically, return a generic server error.
+                return StatusCode(500, "An error occurred while processing your request.");
             }
             catch
             {
-                return StatusCode(500);
+                return StatusCode(500, "An error occurred while processing your request.");
             }
         }
 
@@ -266,14 +349,26 @@ namespace TaxiWebAPI.Controllers
                 await _proxy.BanUserAsync(id);
                 return NoContent();
             }
-            catch (AggregateException)
+            catch (AggregateException ex)
             {
-                // TODO better handling
-                return NotFound("User not found");
+                foreach (var innerEx in ex.InnerExceptions)
+                {
+                    if (innerEx is KeyNotFoundException)
+                    {
+                        return NotFound("The requested user was not found.");
+                    }
+                    else if (innerEx is ArgumentNullException)
+                    {
+                        return BadRequest("Invalid data");
+                    }
+                    // Add more specific exceptions as needed.
+                }
+                // If none of the inner exceptions are handled specifically, return a generic server error.
+                return StatusCode(500, "An error occurred while processing your request.");
             }
             catch
             {
-                return StatusCode(500);
+                return StatusCode(500, "An error occurred while processing your request.");
             }
         }
 
@@ -289,14 +384,26 @@ namespace TaxiWebAPI.Controllers
                 await _proxy.DeleteUserAsync(id);
                 return NoContent();
             }
-            catch (AggregateException)
+            catch (AggregateException ex)
             {
-                // TODO better handling
-                return NotFound("User not found");
+                foreach (var innerEx in ex.InnerExceptions)
+                {
+                    if (innerEx is KeyNotFoundException)
+                    {
+                        return NotFound("The requested user was not found.");
+                    }
+                    else if (innerEx is ArgumentNullException)
+                    {
+                        return BadRequest("Invalid data");
+                    }
+                    // Add more specific exceptions as needed.
+                }
+                // If none of the inner exceptions are handled specifically, return a generic server error.
+                return StatusCode(500, "An error occurred while processing your request.");
             }
             catch
             {
-                return StatusCode(500);
+                return StatusCode(500, "An error occurred while processing your request.");
             }
         }
 
@@ -327,9 +434,9 @@ namespace TaxiWebAPI.Controllers
             int hash = id.GetHashCode();
 
             // Ensure positive values and evenly distribute keys in the range of 0-10
-            long key = (hash & 0x7FFFFFFF) % 11; // & 0x7FFFFFFF is used to ensure the hash code is non-negative
+            long key = (hash & 0x7FFFFFFF) % 10; // & 0x7FFFFFFF is used to ensure the hash code is non-negative
 
-            ServicePartitionKey partKey = new ServicePartitionKey(key);
+            ServicePartitionKey partKey = new ServicePartitionKey(1);
             return ServiceProxy.Create<IUserDataService>(_serviceUri, partKey);
         }
 

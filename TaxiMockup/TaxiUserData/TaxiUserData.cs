@@ -32,6 +32,10 @@ namespace TaxiUserData
         #region User service methods
         public async Task ChangeUserPasswordAsync(UserPasswordChangeRequest userPasswordChangeDTO)
         {
+            if(userPasswordChangeDTO == null)
+            {
+                throw new ArgumentNullException(nameof(userPasswordChangeDTO));
+            }
             var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
             User existingUser;
             using (ITransaction tx = StateManager.CreateTransaction())
@@ -59,6 +63,10 @@ namespace TaxiUserData
         }
         public async Task<AuthResponse> ValidateLoginParamsAsync(UserLoginRequest userLoginDTO)
         {
+            if(userLoginDTO == null)
+            {
+                throw new ArgumentNullException();
+            }
             var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
             using (ITransaction tx = StateManager.CreateTransaction())
             {
@@ -158,7 +166,7 @@ namespace TaxiUserData
                 }
             }
         }
-        public async Task RegisterNewUserAsync(RegisterUserRequest registerUserDTO)
+        public async Task<Guid> RegisterNewUserAsync(RegisterUserRequest registerUserDTO)
         {
             if (registerUserDTO == null)
             {
@@ -186,27 +194,28 @@ namespace TaxiUserData
                 await tx.CommitAsync();
             }
             await QueueDataForLaterProcessingAsync(user, CancellationToken.None);
+            return user.Id;
         }
-        public async Task UpdateUserAsync(UserInfo userDTO)
+        public async Task UpdateUserAsync(UpdateUserReques updateUserDTO)
         {
-            if (userDTO == null)
+            if (updateUserDTO == null)
             {
-                throw new ArgumentNullException(nameof(userDTO));
+                throw new ArgumentNullException(nameof(updateUserDTO));
             }
             var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
             User existingUser;
             using (ITransaction tx = StateManager.CreateTransaction())
             {
-                var user = await users.TryGetValueAsync(tx, userDTO.Id);
+                var user = await users.TryGetValueAsync(tx, updateUserDTO.Id);
                 if (user.HasValue)
                 {
                     existingUser = user.Value;
-                    existingUser.Username = userDTO.Username;
-                    existingUser.Email = userDTO.Email;
-                    existingUser.Address = userDTO.Address;
-                    existingUser.DateOfBirth = userDTO.DateOfBirth;
-                    existingUser.Fullname = userDTO.Fullname;
-                    existingUser.UserPicture = userDTO.UserPicture;
+                    existingUser.Username = updateUserDTO.Username;
+                    existingUser.Email = updateUserDTO.Email;
+                    existingUser.Address = updateUserDTO.Address;
+                    existingUser.DateOfBirth = updateUserDTO.DateOfBirth;
+                    existingUser.Fullname = updateUserDTO.Fullname;
+                    existingUser.UserPicture = updateUserDTO.UserPicture;
                     existingUser._UpdatedAt = DateTimeOffset.UtcNow;
                     await users.AddOrUpdateAsync(tx, existingUser.Id, existingUser, (key, value) => existingUser);
                     await tx.CommitAsync();

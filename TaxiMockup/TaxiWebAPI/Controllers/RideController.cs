@@ -15,7 +15,7 @@ namespace TaxiWebAPI.Controllers
         private readonly ILogger<RideController> _logger;
         private readonly RideDataServiceSettings _rideServiceSettings;
         private readonly Uri _rideServiceUri;
-        public RideController(ILogger<RideController> logger,RideDataServiceSettings rideDataServiceSettings)
+        public RideController(ILogger<RideController> logger, RideDataServiceSettings rideDataServiceSettings)
         {
             _logger = logger;
             _rideServiceSettings = rideDataServiceSettings;
@@ -35,7 +35,7 @@ namespace TaxiWebAPI.Controllers
             }
             catch
             {
-                return StatusCode(500);
+                return StatusCode(500, "An error occurred while processing your request.");
             }
         }
 
@@ -53,7 +53,7 @@ namespace TaxiWebAPI.Controllers
             }
             catch
             {
-                return StatusCode(500);
+                return StatusCode(500, "An error occurred while processing your request.");
             }
         }
 
@@ -71,7 +71,7 @@ namespace TaxiWebAPI.Controllers
             }
             catch
             {
-                return StatusCode(500);
+                return StatusCode(500, "An error occurred while processing your request.");
             }
         }
 
@@ -89,7 +89,7 @@ namespace TaxiWebAPI.Controllers
             }
             catch
             {
-                return StatusCode(500);
+                return StatusCode(500, "An error occurred while processing your request.");
             }
         }
 
@@ -102,21 +102,30 @@ namespace TaxiWebAPI.Controllers
             try
             {
                 var _proxy = CreateProxy();
-                await _proxy.RequestRideAsync(proposedRide);
+                var result = await _proxy.RequestRideAsync(proposedRide);
+                return StatusCode(201,new { id=result});
             }
-            catch (AggregateException)
+            catch (AggregateException ex)
             {
-                return BadRequest("Invalid data");
-            }
-            catch (ApplicationException)
-            {
-                return BadRequest("Only users can request rides");
+                foreach (var innerEx in ex.InnerExceptions)
+                {
+                    if (innerEx is ArgumentException)
+                    {
+                        return BadRequest("Invalid data");
+                    }
+                    else if (innerEx is ArgumentNullException)
+                    {
+                        return BadRequest("Invalid data");
+                    }
+                    // Add more specific exceptions as needed.
+                }
+                // If none of the inner exceptions are handled specifically, return a generic server error.
+                return StatusCode(500, "An error occurred while processing your request.");
             }
             catch
             {
-                return StatusCode(500);
+                return StatusCode(500, "An error occurred while processing your request.");
             }
-            return NoContent();
         }
 
         // PATCH /rides/accept
@@ -129,23 +138,32 @@ namespace TaxiWebAPI.Controllers
             {
                 var _proxy = CreateProxy();
                 await _proxy.AcceptRideAsync(acceptedRide);
-                return Ok();
+                return NoContent();
             }
-            catch (AggregateException)
+            catch (AggregateException ex)
             {
-                return BadRequest("Invalid data");
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound("Ride not found");
-            }
-            catch (ApplicationException)
-            {
-                return BadRequest("Driver not verified");
+                foreach (var innerEx in ex.InnerExceptions)
+                {
+                    if (innerEx is KeyNotFoundException)
+                    {
+                        return NotFound("The requested ride was not found.");
+                    }
+                    else if (innerEx is ArgumentException)
+                    {
+                        return BadRequest("Invalid data");
+                    }
+                    else if (innerEx is ArgumentNullException)
+                    {
+                        return BadRequest("Invalid data");
+                    }
+                    // Add more specific exceptions as needed.
+                }
+                // If none of the inner exceptions are handled specifically, return a generic server error.
+                return StatusCode(500, "An error occurred while processing your request.");
             }
             catch
             {
-                return StatusCode(500);
+                return StatusCode(500, "An error occurred while processing your request.");
             }
         }
 
@@ -159,20 +177,33 @@ namespace TaxiWebAPI.Controllers
             {
                 var _proxy = CreateProxy();
                 await _proxy.FinishRideAsync(finishedRideDTO);
+                return NoContent();
             }
-            catch (AggregateException)
+            catch (AggregateException ex)
             {
-                return BadRequest("Invalid data");
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound("Ride not found");
+                foreach (var innerEx in ex.InnerExceptions)
+                {
+                    if (innerEx is KeyNotFoundException)
+                    {
+                        return NotFound("The requested ride was not found.");
+                    }
+                    else if (innerEx is ArgumentException)
+                    {
+                        return BadRequest("Invalid data");
+                    }
+                    else if (innerEx is ArgumentNullException)
+                    {
+                        return BadRequest("Invalid data");
+                    }
+                    // Add more specific exceptions as needed.
+                }
+                // If none of the inner exceptions are handled specifically, return a generic server error.
+                return StatusCode(500, "An error occurred while processing your request.");
             }
             catch
             {
-                return StatusCode(500);
+                return StatusCode(500, "An error occurred while processing your request.");
             }
-            return Ok();
         }
 
         private IRideDataService CreateProxy()

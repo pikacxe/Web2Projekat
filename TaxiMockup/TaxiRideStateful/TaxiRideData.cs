@@ -51,7 +51,6 @@ namespace TaxiRideData
             }
             return list;
         }
-
         public async Task<IEnumerable<CompletedRideInfoResponse>> GetCompletedRidesUserAsync(Guid userId)
         {
             var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
@@ -72,7 +71,6 @@ namespace TaxiRideData
                 return result;
             }
         }
-
         public async Task<IEnumerable<CompletedRideInfoResponse>> GetCompletedRidesDriverAsync(Guid driverId)
         {
             var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
@@ -93,7 +91,6 @@ namespace TaxiRideData
                 return result;
             }
         }
-
         public async Task<IEnumerable<AvailableRideResponse>> GetPendingRidesAsync()
         {
             var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
@@ -114,20 +111,19 @@ namespace TaxiRideData
                 return result;
             }
         }
-
-        public async Task RequestRideAsync(ProposedRideRequest proposedRide)
+        public async Task<Guid> RequestRideAsync(ProposedRideRequest proposedRide)
         {
             if (proposedRide == null)
             {
                 throw new ArgumentNullException(nameof(proposedRide));
             }
             // TODO Check that passenger is not of type driver
-            var proxy = ServiceProxy.Create<IUserRideService>(_serviceUri, new ServicePartitionKey(1));
-            var res = await proxy.CheckPasengerTypeAsync(proposedRide.PassengerId);
-            if (!res)
-            {
-                throw new ApplicationException("User requesting ride can not be a Driver");
-            }
+            //var proxy = ServiceProxy.Create<IUserRideService>(_serviceUri, new ServicePartitionKey(1));
+            //var res = await proxy.CheckPasengerTypeAsync(proposedRide.PassengerId);
+            //if (!res)
+            //{
+            //    throw new ArgumentException("User requesting ride can not be a Driver");
+            //}
             Ride newRide = new Ride
             {
                 Id = Guid.NewGuid(),
@@ -147,8 +143,8 @@ namespace TaxiRideData
                 await tx.CommitAsync();
             }
             await QueueDataForLaterProcessingAsync(newRide, CancellationToken.None);
+            return newRide.Id;
         }
-
         public async Task AcceptRideAsync(AcceptRideRequest acceptRideDTO)
         {
             if (acceptRideDTO == null)
@@ -156,12 +152,12 @@ namespace TaxiRideData
                 throw new ArgumentNullException(nameof(acceptRideDTO));
             }
             // TODO Check that driver is verified before procceding
-            var proxy = ServiceProxy.Create<IUserRideService>(_serviceUri, new ServicePartitionKey(1));
-            var res = await proxy.DriverExistsAndVerifiedAsync(acceptRideDTO.DriverID);
-            if (!res)
-            {
-                throw new ApplicationException("Driver must be verified to accept rides");
-            }
+            //var proxy = ServiceProxy.Create<IUserRideService>(_serviceUri, new ServicePartitionKey(1));
+            //var res = await proxy.DriverExistsAndVerifiedAsync(acceptRideDTO.DriverID);
+            //if (!res)
+            //{
+            //    throw new ArgumentException("Driver must be verified to accept rides");
+            //}
             var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
             Ride acceptedRide;
             using (ITransaction tx = StateManager.CreateTransaction())
@@ -184,7 +180,6 @@ namespace TaxiRideData
             }
             await QueueDataForLaterProcessingAsync(acceptedRide, CancellationToken.None);
         }
-
         public async Task FinishRideAsync(FinishedRideRequest finishedRideDTO)
         {
             if (finishedRideDTO == null)
@@ -192,13 +187,13 @@ namespace TaxiRideData
                 throw new ArgumentNullException(nameof(finishedRideDTO));
             }
             // TODO Check that driver is verified before procceding
-            var proxy = ServiceProxy.Create<IUserRideService>(_serviceUri, new ServicePartitionKey(1));
-            var res = await proxy.CheckPasengerTypeAsync(finishedRideDTO.PassengerId);
-            ServiceEventSource.Current.ServiceMessage(this.Context, $"Passenger is of type user: {res}");
-            if (!res)
-            {
-                throw new ApplicationException("User finishing ride can not be a Driver");
-            }
+            //var proxy = ServiceProxy.Create<IUserRideService>(_serviceUri, new ServicePartitionKey(1));
+            //var res = await proxy.CheckPasengerTypeAsync(finishedRideDTO.PassengerId);
+            //ServiceEventSource.Current.ServiceMessage(this.Context, $"Passenger is of type user: {res}");
+            //if (!res)
+            //{
+            //    throw new ArgumentException("User finishing ride can not be a Driver");
+            //}
             var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
             Ride finishedRide;
             using (ITransaction tx = StateManager.CreateTransaction())
@@ -225,7 +220,6 @@ namespace TaxiRideData
             }
             await QueueDataForLaterProcessingAsync(finishedRide, CancellationToken.None);
         }
-
         #endregion
         #region Data seeding methods
         private async Task SeedDataFromMongoDBAsync(CancellationToken cancellationToken)

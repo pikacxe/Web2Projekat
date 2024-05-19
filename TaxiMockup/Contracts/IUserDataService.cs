@@ -48,8 +48,9 @@ namespace Contracts
         /// Registers new user
         /// </summary>
         /// <param name="registerUserDTO">Registration parameters</param>
+        /// <exception cref="ArgumentException"/>
         /// <returns></returns>
-        Task RegisterNewUserAsync(RegisterUserRequest registerUserDTO);
+        Task<Guid> RegisterNewUserAsync(RegisterUserRequest registerUserDTO);
         /// <summary>
         /// Gets user state for given user
         /// </summary>
@@ -68,15 +69,16 @@ namespace Contracts
         /// <summary>
         /// Updates user
         /// </summary>
-        /// <param name="userDTO"></param>
+        /// <param name="updateUserDTO"></param>
         /// <exception cref="ArgumentException"/>
         /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task UpdateUserAsync(UserInfo userDTO);
+        Task UpdateUserAsync(UpdateUserReques updateUserDTO);
         /// <summary>
         /// Deletes user
         /// </summary>
         /// <param name="id">Id of user to delete</param>
+        /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
         Task DeleteUserAsync(Guid id);
     }

@@ -46,6 +46,33 @@ namespace Common.DTO
     }
 
     [DataContract]
+    public class UpdateUserReques
+    {
+        [DataMember]
+        [Required]
+        public Guid Id { get; set; }
+        [DataMember]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Username is required!")]
+        public string? Username { get; set; }
+        [DataMember]
+        [EmailAddress]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Email is required!")]
+        public string? Email { get; set; }
+        [DataMember]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Fullname is required!")]
+        public string? Fullname { get; set; }
+        [DataMember]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Picture is required!")]
+        public string? UserPicture { get; set; }
+        [DataMember]
+        [Required(ErrorMessage = "Date of birth is required!")]
+        public DateTimeOffset? DateOfBirth { get; set; }
+        [DataMember]
+        [Required(ErrorMessage = "Address is required!")]
+        public string? Address { get; set; }
+    }
+
+    [DataContract]
     public class UserStateResponse
     {
         [DataMember]
