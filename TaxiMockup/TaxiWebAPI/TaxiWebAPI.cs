@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TaxiWebAPI.Settings;
+using Common;
 
 namespace TaxiWebAPI
 {
@@ -49,8 +50,9 @@ namespace TaxiWebAPI
                             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                             .Build();
                         // Register data services
-                        builder.Services.AddRideDataServiceFactory(configuration);
-                        builder.Services.AddUserDataServiceFactory(configuration);
+                        builder.Services.AddServiceProxyFactory(configuration);
+                        builder.Services.AddRideDataServiceSettings(configuration);
+                        builder.Services.AddUserDataServiceSettings(configuration);
                         // Add jwt token settings
                         builder.Services.AddJwtSettings(configuration);
                         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

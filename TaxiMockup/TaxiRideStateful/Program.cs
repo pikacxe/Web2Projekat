@@ -52,9 +52,10 @@ namespace TaxiRideData
         private static IServiceProvider SetupServices(IConfiguration configuration)
         {
             IServiceCollection services = new ServiceCollection();
-            services.AddMongo(configuration);
-            services.AddMongoRepository<Ride>("Ride");
-            services.AddUserDataServiceFactory(configuration);
+            services.AddMongo(configuration)
+            .AddMongoRepository<Ride>("Ride")
+            .AddServiceProxyFactory(configuration)
+            .AddUserDataServiceSettings(configuration);
 
             return services.BuildServiceProvider();
         }

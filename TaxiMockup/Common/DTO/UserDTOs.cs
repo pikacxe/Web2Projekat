@@ -73,7 +73,7 @@ namespace Common.DTO
     }
 
     [DataContract]
-    public class UserStateResponse
+    public record UserStateResponse
     {
         [DataMember]
         public Guid UserId { get; set; }
@@ -96,7 +96,7 @@ namespace Common.DTO
     }
 
     [DataContract]
-    public class UserInfo
+    public record UserInfo
     {
         [DataMember]
         public Guid Id { get; set; }

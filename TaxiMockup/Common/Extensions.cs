@@ -4,6 +4,9 @@ using Common.Repository;
 using Common.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.ServiceFabric.Services.Remoting.Client;
+using Microsoft.ServiceFabric.Services.Remoting.FabricTransport;
+using Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Client;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
@@ -67,16 +70,31 @@ namespace Common
         /// <param name="configuration"></param>
         /// <returns></returns>
         /// <exception cref="ApplicationException"></exception>
-        public static IServiceCollection AddUserDataServiceFactory(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddUserDataServiceSettings(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddTransient(serviceProvider =>
+            var serviceSettings = configuration.GetSection(nameof(UserDataServiceSettings)).Get<UserDataServiceSettings>();
+            if (serviceSettings == null)
             {
-                var serviceSettings = configuration.GetSection(nameof(UserDataServiceSettings)).Get<UserDataServiceSettings>();
-                if (serviceSettings == null)
-                {
-                    throw new ApplicationException("User data service settings not set");
-                }
+                throw new ApplicationException("User data service settings not set");
+            }
+            services.AddSingleton(serviceProvider =>
+            {
                 return serviceSettings;
+            });
+            return services;
+        }
+        public static IServiceCollection AddServiceProxyFactory(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddSingleton(serviceProvider =>
+            {
+                var serviceProxyFactory = new ServiceProxyFactory(
+                (callbackClient) =>
+                {
+                    var settings = new FabricTransportRemotingSettings();
+                    settings.UseWrappedMessage = true;
+                    return new FabricTransportServiceRemotingClientFactory(settings);
+                });
+                return serviceProxyFactory;
             });
             return services;
         }

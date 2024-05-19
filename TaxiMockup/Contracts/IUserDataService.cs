@@ -1,6 +1,7 @@
 ﻿using Microsoft.ServiceFabric.Services.Remoting;
 using Common.DTO;
 
+
 namespace Contracts
 {
     public interface IUserDataService : IService

@@ -8,7 +8,7 @@ namespace TaxiWebAPI
 {
     public static class Extensions
     {
-        public static IServiceCollection AddRideDataServiceFactory(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddRideDataServiceSettings(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddSingleton(serviceProvider =>
             {
@@ -21,21 +21,6 @@ namespace TaxiWebAPI
             });
             return services;
         }
-
-        public static IServiceCollection AddUserDataServiceFactory(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.AddTransient(serviceProvider =>
-            {
-                var serviceSettings = configuration.GetSection(nameof(UserDataServiceSettings)).Get<UserDataServiceSettings>();
-                if (serviceSettings == null)
-                {
-                    throw new ApplicationException("User data service settings not set");
-                }
-                return serviceSettings;
-            });
-            return services;
-        }
-
         public static IServiceCollection AddJwtSettings(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddSingleton(serviceProvider =>

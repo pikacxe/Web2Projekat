@@ -3,8 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Common.Settings;
-using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Client;
+using Microsoft.ServiceFabric.Services.Communication;
+using Microsoft.ServiceFabric.Services.Remoting.Client;
 
 namespace TaxiWebAPI.Controllers
 {
@@ -14,10 +15,12 @@ namespace TaxiWebAPI.Controllers
     {
         private readonly ILogger<RideController> _logger;
         private readonly RideDataServiceSettings _rideServiceSettings;
+        private readonly ServiceProxyFactory _proxyFactory;
         private readonly Uri _rideServiceUri;
-        public RideController(ILogger<RideController> logger, RideDataServiceSettings rideDataServiceSettings)
+        public RideController(ILogger<RideController> logger,ServiceProxyFactory serviceProxyFactory, RideDataServiceSettings rideDataServiceSettings)
         {
             _logger = logger;
+            _proxyFactory = serviceProxyFactory;
             _rideServiceSettings = rideDataServiceSettings;
             _rideServiceUri = new Uri(_rideServiceSettings.ConnectionString);
         }
@@ -103,7 +106,7 @@ namespace TaxiWebAPI.Controllers
             {
                 var _proxy = CreateProxy();
                 var result = await _proxy.RequestRideAsync(proposedRide);
-                return StatusCode(201,new { id=result});
+                return StatusCode(201, new { id = result });
             }
             catch (AggregateException ex)
             {
@@ -158,6 +161,7 @@ namespace TaxiWebAPI.Controllers
                     }
                     // Add more specific exceptions as needed.
                 }
+                // Add more specific exceptions as needed.
                 // If none of the inner exceptions are handled specifically, return a generic server error.
                 return StatusCode(500, "An error occurred while processing your request.");
             }
@@ -209,7 +213,7 @@ namespace TaxiWebAPI.Controllers
         private IRideDataService CreateProxy()
         {
             ServicePartitionKey key = new ServicePartitionKey(_rideServiceSettings.PartitionKey);
-            return ServiceProxy.Create<IRideDataService>(_rideServiceUri, key);
+            return _proxyFactory.CreateServiceProxy<IRideDataService>(_rideServiceUri, key);
         }
     }
 }

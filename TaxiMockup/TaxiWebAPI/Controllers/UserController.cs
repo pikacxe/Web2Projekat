@@ -23,12 +23,14 @@ namespace TaxiWebAPI.Controllers
         private readonly UserDataServiceSettings _userServiceSettings;
         private readonly JwtTokenSettings _jwtSettings;
         private readonly Uri _serviceUri;
+        private readonly ServiceProxyFactory _serviceProxyFactory;
 
-        public UserController(ILogger<UserController> logger,UserDataServiceSettings serviceSettings , JwtTokenSettings jwtSettings)
+        public UserController(ILogger<UserController> logger,ServiceProxyFactory factory,UserDataServiceSettings serviceSettings , JwtTokenSettings jwtSettings)
         {
             _logger = logger;
             _jwtSettings = jwtSettings;
             _userServiceSettings = serviceSettings;
+            _serviceProxyFactory = factory;
             _serviceUri = new Uri(_userServiceSettings.ConnectionString);
         }
 
@@ -437,7 +439,7 @@ namespace TaxiWebAPI.Controllers
             long key = (hash & 0x7FFFFFFF) % 10; // & 0x7FFFFFFF is used to ensure the hash code is non-negative
 
             ServicePartitionKey partKey = new ServicePartitionKey(1);
-            return ServiceProxy.Create<IUserDataService>(_serviceUri, partKey);
+            return _serviceProxyFactory.CreateServiceProxy<IUserDataService>(_serviceUri, partKey);
         }
 
     }
