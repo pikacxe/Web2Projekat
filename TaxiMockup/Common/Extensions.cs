@@ -32,7 +32,7 @@ namespace Common
             {
                 throw new ArgumentNullException(nameof(configuration));
             }
-            var mongoClient = new MongoClient(mongoDbSettings.ConnectionString);
+            var mongoClient = new MongoClient($"{mongoDbSettings.ConnectionString}/{serviceSettings.ServiceName}");
             var database = mongoClient.GetDatabase(serviceSettings.ServiceName);
 
             // Register database instance as singleton
