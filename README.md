@@ -131,4 +131,4 @@ Mock uber like app with microservice architecture where users can request a ride
 - [x] move service proxy creation to Common
     - [ ] add service partition resolver 
 - [ ] add mailing upon user verification
-- [ ] update database connection to be more secure
+- [x] update database connection to be more secure
