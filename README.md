@@ -115,8 +115,9 @@ Mock uber like app with microservice architecture where users can request a ride
 
 - [x] add JWT auth
   - [x] add RBAC
+- [ ] implement OAuth signin 
 - [x] implement CDN service
-    - [ ] update cdn service to regular stateless from web stateless ?? (user mail service as regular stateless)
+    - [x] update cdn service to regular stateless from web stateless
 - [x] implement Ride data service
   - [x] implement data validation
 - [x] implement User data service
@@ -129,5 +130,5 @@ Mock uber like app with microservice architecture where users can request a ride
 - [x] implement database backup for stateful service's state
 - [x] move service proxy creation to Common
     - [ ] add service partition resolver 
-- [ ] add mail service
+- [ ] add mailing upon user verification
 - [ ] update database connection to be more secure

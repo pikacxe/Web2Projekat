@@ -21,6 +21,19 @@ namespace TaxiWebAPI
             });
             return services;
         }
+        public static IServiceCollection AddCDNServiceSettings(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddSingleton(serviceProvider =>
+            {
+                var serviceSettings = configuration.GetSection(nameof(CDNServiceSettings)).Get<CDNServiceSettings>();
+                if (serviceSettings == null)
+                {
+                    throw new ApplicationException("CDN service settings not set");
+                }
+                return serviceSettings;
+            });
+            return services;
+        }
         public static IServiceCollection AddJwtSettings(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddSingleton(serviceProvider =>

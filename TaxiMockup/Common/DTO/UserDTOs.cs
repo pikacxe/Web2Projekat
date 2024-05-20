@@ -32,6 +32,7 @@ namespace Common.DTO
         [Required(AllowEmptyStrings = false, ErrorMessage = "Fullname is required!")]
         public string? Fullname { get; set; }
         [DataMember]
+        [Url]
         [Required(AllowEmptyStrings = false, ErrorMessage = "Picture is required!")]
         public string? UserPicture { get; set; }
         [DataMember]
