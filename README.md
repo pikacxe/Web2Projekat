@@ -22,8 +22,7 @@ Mock uber like app with microservice architecture where users can request a ride
 - API gateway - web stateless
 - User data service - stateful
 - Ride data service - stateful
-- CDN service (User images) - web statless
-- Mail service - stateless (TBD)
+- CDN service (User images) - statless
 
 <summary>
 
@@ -130,5 +129,13 @@ Mock uber like app with microservice architecture where users can request a ride
 - [x] implement database backup for stateful service's state
 - [x] move service proxy creation to Common
     - [ ] add service partition resolver 
-- [ ] add mailing upon user verification
+- [x] add mailing upon user verification
 - [x] update database connection to be more secure
+- [ ] add password hashing (currently disabled for easier debugging)
+- [ ] add CancelationTokens to repository methods
+- [ ] add app settings validation
+- [ ] update data service to check for edge cases
+    - [ ] only users of type driver can be verified/banned
+    - [ ] only users of type user can request/finish rides
+    - [ ] only users of type driver can accept rides
+    - [ ] check for id consistency when updating user or changing password (users can only change own data)
