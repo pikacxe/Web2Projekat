@@ -14,13 +14,13 @@ namespace Contracts
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task<bool> DriverExistsAndVerifiedAsync(Guid id);
+        Task<bool> DriverExistsAndVerifiedAsync(Guid id, CancellationToken cancellationToken = default);
         /// <summary>
         /// Check if user request ride is of type user
         /// </summary>
         /// <param name="id"></param>
         /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task<bool> CheckPasengerTypeAsync(Guid id);
+        Task<bool> CheckPasengerTypeAsync(Guid id, CancellationToken cancellationToken = default);
     }
 }

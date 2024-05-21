@@ -21,6 +21,7 @@ namespace TaxiUserData
         private readonly IRepository<User> _repo;
         private readonly MailHelper _mailHelper;
         private readonly int seedPeriod;
+        private readonly TimeSpan timeout = TimeSpan.FromSeconds(10); // timeout for realiable collections
         public TaxiUserData(StatefulServiceContext context, IRepository<User> repo, MailHelper mailHelper, int seedPeriod)
             : base(context)
         {
@@ -33,17 +34,17 @@ namespace TaxiUserData
         #region Data seeding methods
         private async Task SeedDataFromMongoDBAsync(CancellationToken cancellationToken)
         {
-            var data = await _repo.GetAllAsync();
+            var data = await _repo.GetAllAsync(cancellationToken);
             await SeedDataToServiceFabricAsync(data, cancellationToken);
         }
         private async Task SeedDataToServiceFabricAsync(IEnumerable<User> data, CancellationToken cancellationToken)
         {
-            var myDictionary = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
             using (var tx = StateManager.CreateTransaction())
             {
+                var myDictionary = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(tx, _dictName, timeout);
                 foreach (var item in data)
                 {
-                    await myDictionary.AddOrUpdateAsync(tx, item.Id, item, (key, value) => item);
+                    await myDictionary.AddOrUpdateAsync(tx, item.Id, item, (key, value) => item, timeout, cancellationToken);
                 }
 
                 await tx.CommitAsync();
@@ -51,10 +52,10 @@ namespace TaxiUserData
         }
         private async Task ProcessQueuedDataAsync(CancellationToken cancellationToken)
         {
-            var myQueue = await StateManager.GetOrAddAsync<IReliableQueue<User>>(_queueName);
-            while (!cancellationToken.IsCancellationRequested)
+            using (var tx = StateManager.CreateTransaction())
             {
-                using (var tx = StateManager.CreateTransaction())
+                var myQueue = await StateManager.GetOrAddAsync<IReliableQueue<User>>(tx, _queueName, timeout);
+                while (!cancellationToken.IsCancellationRequested)
                 {
                     var result = await myQueue.TryDequeueAsync(tx, TimeSpan.FromSeconds(5), cancellationToken);
                     if (result.HasValue)
@@ -69,13 +70,13 @@ namespace TaxiUserData
                         {
                             await _repo.UpdateAsync(user);
                         }
-                        await tx.CommitAsync();
                     }
                     else
                     {
                         break;
                     }
                 }
+                await tx.CommitAsync();
             }
         }
         #endregion

@@ -20,28 +20,29 @@ namespace TaxiRideData
         private readonly IRepository<Ride> _repo;
         private readonly UserDataServiceSettings _serviceSettings;
         private readonly int seedPeriod;
-        public TaxiRideData(StatefulServiceContext context, IRepository<Ride> repo,UserDataServiceSettings serviceSettings, int seedPeriod)
+        private readonly TimeSpan timeout = TimeSpan.FromSeconds(10); // timeout for realiable collections
+        public TaxiRideData(StatefulServiceContext context, IRepository<Ride> repo, UserDataServiceSettings serviceSettings, int seedPeriod)
             : base(context)
         {
             _repo = repo;
             _serviceSettings = serviceSettings;
             this.seedPeriod = seedPeriod;
         }
- 
+
         #region Data seeding methods
         private async Task SeedDataFromMongoDBAsync(CancellationToken cancellationToken)
         {
-            var data = await _repo.GetAllAsync();
+            var data = await _repo.GetAllAsync(cancellationToken);
             await SeedDataToServiceFabricAsync(data, cancellationToken);
         }
         private async Task SeedDataToServiceFabricAsync(IEnumerable<Ride> data, CancellationToken cancellationToken)
         {
-            var myDictionary = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
             using (var tx = StateManager.CreateTransaction())
             {
+                var myDictionary = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(tx, _dictName, timeout);
                 foreach (var item in data)
                 {
-                    await myDictionary.AddOrUpdateAsync(tx, item.Id, item, (key, value) => item);
+                    await myDictionary.AddOrUpdateAsync(tx, item.Id, item, (key, value) => item, timeout, cancellationToken);
                 }
 
                 await tx.CommitAsync();
@@ -49,31 +50,31 @@ namespace TaxiRideData
         }
         private async Task ProcessQueuedDataAsync(CancellationToken cancellationToken)
         {
-            var myQueue = await StateManager.GetOrAddAsync<IReliableQueue<Ride>>(_queueName);
-            while (!cancellationToken.IsCancellationRequested)
+            using (var tx = StateManager.CreateTransaction())
             {
-                using (var tx = StateManager.CreateTransaction())
+                var myQueue = await StateManager.GetOrAddAsync<IReliableQueue<Ride>>(_queueName, timeout);
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    var result = await myQueue.TryDequeueAsync(tx, TimeSpan.FromSeconds(5), cancellationToken);
+                    var result = await myQueue.TryDequeueAsync(tx, timeout, cancellationToken);
                     if (result.HasValue)
                     {
                         Ride ride = result.Value;
                         ServiceEventSource.Current.ServiceMessage(this.Context, $"======== Item from '{_queueName}': {ride.Id} ========");
                         if (ride.StartDestination == "toDelete")
                         {
-                            await _repo.DeleteAsync(ride.Id);
+                            await _repo.DeleteAsync(ride.Id, cancellationToken);
                         }
                         else
                         {
-                            await _repo.UpdateAsync(ride);
+                            await _repo.UpdateAsync(ride, cancellationToken);
                         }
-                        await tx.CommitAsync();
                     }
                     else
                     {
                         break;
                     }
                 }
+                await tx.CommitAsync();
             }
         }
         #endregion

@@ -20,7 +20,8 @@ namespace TaxiRideData
         private readonly IReliableStateManager StateManager;
         private readonly UserDataServiceSettings _serviceSettings;
         private readonly Uri _serviceUri;
-        public RideServiceImpl(string dictName,string  queueName, IReliableStateManager stateManager, UserDataServiceSettings userServiceSettings)
+        private readonly TimeSpan timeout = TimeSpan.FromSeconds(5);
+        public RideServiceImpl(string dictName, string queueName, IReliableStateManager stateManager, UserDataServiceSettings userServiceSettings)
         {
             _dictName = dictName;
             _queueName = queueName;
@@ -30,31 +31,31 @@ namespace TaxiRideData
         }
 
         #region Ride service methods
-        public async Task<IEnumerable<Ride>> GetAllRidesAsync()
+        public async Task<IEnumerable<Ride>> GetAllRidesAsync(CancellationToken cancellationToken)
         {
-            var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
-            List<Ride> list = new();
             using (ITransaction tx = StateManager.CreateTransaction())
             {
+                var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(tx, _dictName, timeout);
+                List<Ride> list = new();
                 var enumerable = await rides.CreateEnumerableAsync(tx);
                 var enumerator = enumerable.GetAsyncEnumerator();
-                while (await enumerator.MoveNextAsync(CancellationToken.None))
+                while (await enumerator.MoveNextAsync(cancellationToken))
                 {
                     list.Add(enumerator.Current.Value);
                 }
                 enumerator.Dispose();
+                return list;
             }
-            return list;
         }
-        public async Task<IEnumerable<CompletedRideInfoResponse>> GetCompletedRidesUserAsync(Guid userId)
+        public async Task<IEnumerable<CompletedRideInfoResponse>> GetCompletedRidesUserAsync(Guid userId, CancellationToken cancellationToken)
         {
-            var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
-            List<CompletedRideInfoResponse> result = new();
             using (ITransaction tx = StateManager.CreateTransaction())
             {
+                var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(tx, _dictName, timeout);
+                List<CompletedRideInfoResponse> result = new();
                 var enumerable = await rides.CreateEnumerableAsync(tx);
                 var enumerator = enumerable.GetAsyncEnumerator();
-                while (await enumerator.MoveNextAsync(CancellationToken.None))
+                while (await enumerator.MoveNextAsync(cancellationToken))
                 {
                     var currentRide = enumerator.Current.Value;
                     if (currentRide.PassengerId == userId && currentRide.RideState == RideState.Finished)
@@ -66,15 +67,15 @@ namespace TaxiRideData
                 return result;
             }
         }
-        public async Task<IEnumerable<CompletedRideInfoResponse>> GetCompletedRidesDriverAsync(Guid driverId)
+        public async Task<IEnumerable<CompletedRideInfoResponse>> GetCompletedRidesDriverAsync(Guid driverId, CancellationToken cancellationToken)
         {
-            var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
-            List<CompletedRideInfoResponse> result = new();
             using (ITransaction tx = StateManager.CreateTransaction())
             {
+                var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(tx, _dictName, timeout);
+                List<CompletedRideInfoResponse> result = new();
                 var enumerable = await rides.CreateEnumerableAsync(tx);
                 var enumerator = enumerable.GetAsyncEnumerator();
-                while (await enumerator.MoveNextAsync(CancellationToken.None))
+                while (await enumerator.MoveNextAsync(cancellationToken))
                 {
                     var currentRide = enumerator.Current.Value;
                     if (currentRide.DriverId == driverId && currentRide.RideState == RideState.Finished)
@@ -86,15 +87,15 @@ namespace TaxiRideData
                 return result;
             }
         }
-        public async Task<IEnumerable<AvailableRideResponse>> GetPendingRidesAsync()
+        public async Task<IEnumerable<AvailableRideResponse>> GetPendingRidesAsync(CancellationToken cancellationToken)
         {
-            var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
-            List<AvailableRideResponse> result = new();
             using (ITransaction tx = StateManager.CreateTransaction())
             {
+                var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(tx, _dictName, timeout);
+                List<AvailableRideResponse> result = new();
                 var enumerable = await rides.CreateEnumerableAsync(tx);
                 var enumerator = enumerable.GetAsyncEnumerator();
-                while (await enumerator.MoveNextAsync(CancellationToken.None))
+                while (await enumerator.MoveNextAsync(cancellationToken))
                 {
                     var currentRide = enumerator.Current.Value;
                     if (currentRide.RideState == RideState.Pending)
@@ -106,7 +107,7 @@ namespace TaxiRideData
                 return result;
             }
         }
-        public async Task<Guid> RequestRideAsync(ProposedRideRequest proposedRide)
+        public async Task<Guid> RequestRideAsync(ProposedRideRequest proposedRide, CancellationToken cancellationToken)
         {
             if (proposedRide == null)
             {
@@ -133,14 +134,14 @@ namespace TaxiRideData
             };
             using (ITransaction tx = StateManager.CreateTransaction())
             {
-                var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
-                await rides.AddAsync(tx, newRide.Id, newRide);
+                var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(tx, _dictName, timeout);
+                await rides.AddAsync(tx, newRide.Id, newRide, timeout, cancellationToken);
                 await tx.CommitAsync();
             }
-            await QueueDataForLaterProcessingAsync(newRide, CancellationToken.None);
+            await QueueDataForLaterProcessingAsync(newRide, cancellationToken);
             return newRide.Id;
         }
-        public async Task AcceptRideAsync(AcceptRideRequest acceptRideDTO)
+        public async Task AcceptRideAsync(AcceptRideRequest acceptRideDTO, CancellationToken cancellationToken)
         {
             if (acceptRideDTO == null)
             {
@@ -153,11 +154,10 @@ namespace TaxiRideData
             //{
             //    throw new ArgumentException("Driver must be verified to accept rides");
             //}
-            var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
             Ride acceptedRide;
             using (ITransaction tx = StateManager.CreateTransaction())
             {
-
+                var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(tx, _dictName, timeout);
                 var ride = await rides.TryGetValueAsync(tx, acceptRideDTO.RideId);
                 if (ride.HasValue)
                 {
@@ -165,7 +165,7 @@ namespace TaxiRideData
                     acceptedRide.DriverId = acceptRideDTO.DriverID;
                     acceptedRide.DriverETA = acceptedRide.DriverETA;
                     acceptedRide.RideState = RideState.InProgress;
-                    await rides.AddOrUpdateAsync(tx, acceptedRide.Id, acceptedRide, (r1, r2) => r2);
+                    await rides.AddOrUpdateAsync(tx, acceptedRide.Id, acceptedRide, (r1, r2) => r2, timeout, cancellationToken);
                     await tx.CommitAsync();
                 }
                 else
@@ -173,9 +173,9 @@ namespace TaxiRideData
                     throw new KeyNotFoundException(nameof(acceptRideDTO));
                 }
             }
-            await QueueDataForLaterProcessingAsync(acceptedRide, CancellationToken.None);
+            await QueueDataForLaterProcessingAsync(acceptedRide, cancellationToken);
         }
-        public async Task FinishRideAsync(FinishedRideRequest finishedRideDTO)
+        public async Task FinishRideAsync(FinishedRideRequest finishedRideDTO, CancellationToken cancellationToken)
         {
             if (finishedRideDTO == null)
             {
@@ -189,11 +189,10 @@ namespace TaxiRideData
             //{
             //    throw new ArgumentException("User finishing ride can not be a Driver");
             //}
-            var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
             Ride finishedRide;
             using (ITransaction tx = StateManager.CreateTransaction())
             {
-
+                var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(tx, _dictName, timeout);
                 var ride = await rides.TryGetValueAsync(tx, finishedRideDTO.RideId);
                 if (ride.HasValue)
                 {
@@ -205,7 +204,7 @@ namespace TaxiRideData
                     finishedRide.RideState = RideState.Finished;
                     finishedRide.Rating = finishedRideDTO.Rating;
                     finishedRide._FinishedAt = DateTimeOffset.Now;
-                    await rides.AddOrUpdateAsync(tx, finishedRide.Id, finishedRide, (r1, r2) => r2);
+                    await rides.AddOrUpdateAsync(tx, finishedRide.Id, finishedRide, (r1, r2) => r2, timeout, cancellationToken);
                     await tx.CommitAsync();
                 }
                 else
@@ -218,10 +217,10 @@ namespace TaxiRideData
         #endregion
         private async Task QueueDataForLaterProcessingAsync(Ride data, CancellationToken cancellationToken)
         {
-            var myQueue = await StateManager.GetOrAddAsync<IReliableQueue<Ride>>(_queueName);
             using (var tx = StateManager.CreateTransaction())
             {
-                await myQueue.EnqueueAsync(tx, data);
+                var myQueue = await StateManager.GetOrAddAsync<IReliableQueue<Ride>>(tx, _queueName, timeout);
+                await myQueue.EnqueueAsync(tx, data, timeout, cancellationToken);
                 await tx.CommitAsync();
             }
         }

@@ -13,7 +13,7 @@ namespace Contracts
         /// <exception cref="ArgumentNullException"/>
         /// <exception cref="ArgumentException"/>
         /// <returns></returns>
-        Task<Guid> RequestRideAsync(ProposedRideRequest proposedRide);
+        Task<Guid> RequestRideAsync(ProposedRideRequest proposedRide, CancellationToken cancellationToken = default);
         /// <summary>
         /// Accepts pending ride
         /// </summary>
@@ -22,7 +22,7 @@ namespace Contracts
         /// <exception cref="ArgumentException"/>
         /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task AcceptRideAsync(AcceptRideRequest acceptRideDTO);
+        Task AcceptRideAsync(AcceptRideRequest acceptRideDTO, CancellationToken cancellationToken = default);
         /// <summary>
         /// Finishes ride in progress
         /// </summary>
@@ -31,28 +31,28 @@ namespace Contracts
         /// <exception cref="ArgumentException"/>
         /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task FinishRideAsync(FinishedRideRequest finishRideDTO);
+        Task FinishRideAsync(FinishedRideRequest finishRideDTO, CancellationToken cancellationToken = default);
         /// <summary>
         /// Gets all rides
         /// </summary>
         /// <returns></returns>
-        Task<IEnumerable<Ride>> GetAllRidesAsync();
+        Task<IEnumerable<Ride>> GetAllRidesAsync(CancellationToken cancellationToken = default);
         /// <summary>
         /// Gets all rides
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        Task<IEnumerable<CompletedRideInfoResponse>> GetCompletedRidesUserAsync(Guid userId);
+        Task<IEnumerable<CompletedRideInfoResponse>> GetCompletedRidesUserAsync(Guid userId, CancellationToken cancellationToken = default);
         /// <summary>
         /// Gets completed rides for given driver
         /// </summary>
         /// <param name="driverId"></param>
         /// <returns></returns>
-        Task<IEnumerable<CompletedRideInfoResponse>> GetCompletedRidesDriverAsync(Guid driverId);
+        Task<IEnumerable<CompletedRideInfoResponse>> GetCompletedRidesDriverAsync(Guid driverId, CancellationToken cancellationToken = default);
         /// <summary>
         /// Gets all pending rides
         /// </summary>
         /// <returns></returns>
-        Task<IEnumerable<AvailableRideResponse>> GetPendingRidesAsync();
+        Task<IEnumerable<AvailableRideResponse>> GetPendingRidesAsync(CancellationToken cancellationToken = default);
     }
 }

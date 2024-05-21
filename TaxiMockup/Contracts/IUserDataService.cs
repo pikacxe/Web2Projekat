@@ -12,31 +12,31 @@ namespace Contracts
         /// <param name="id"></param>        
         /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task<UserInfo> GetAsync(Guid id);
+        Task<UserInfo> GetAsync(Guid id, CancellationToken cancellationToken = default);
         /// <summary>
         /// Gets all users in system
         /// </summary>
         /// <returns></returns>
-        Task<IEnumerable<UserInfo>> GetAllAsync();
+        Task<IEnumerable<UserInfo>> GetAllAsync(CancellationToken cancellationToken = default);
         /// <summary>
         /// Gets all unverified users
         /// </summary>
         /// <returns></returns>
-        Task<IEnumerable<UserInfo>> GetAllUnverifiedAsync();
+        Task<IEnumerable<UserInfo>> GetAllUnverifiedAsync(CancellationToken cancellationToken = default);
         /// <summary>
         /// Verrifies user
         /// </summary>
         /// <param name="userId">Id of user to verify</param>
         /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task VerifyUserAsync(Guid userId);
+        Task VerifyUserAsync(Guid userId, CancellationToken cancellationToken = default);
         /// <summary>
         /// Bans user
         /// </summary>
         /// <param name="userId">Id of user to ban</param>
         /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task BanUserAsync(Guid userId);
+        Task BanUserAsync(Guid userId, CancellationToken cancellationToken = default);
         /// <summary>
         /// Validates login parameteres
         /// </summary>
@@ -44,21 +44,21 @@ namespace Contracts
         /// <exception cref="ArgumentException"/>
         /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task<AuthResponse> ValidateLoginParamsAsync(UserLoginRequest userLoginDTO);
+        Task<AuthResponse> ValidateLoginParamsAsync(UserLoginRequest userLoginDTO, CancellationToken cancellationToken = default);
         /// <summary>
         /// Registers new user
         /// </summary>
         /// <param name="registerUserDTO">Registration parameters</param>
         /// <exception cref="ArgumentException"/>
         /// <returns></returns>
-        Task<Guid> RegisterNewUserAsync(RegisterUserRequest registerUserDTO);
+        Task<Guid> RegisterNewUserAsync(RegisterUserRequest registerUserDTO, CancellationToken cancellationToken = default);
         /// <summary>
         /// Gets user state for given user
         /// </summary>
         /// <param name="id"></param>
         /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task<UserStateResponse> GetUserStateAsync(Guid id);
+        Task<UserStateResponse> GetUserStateAsync(Guid id, CancellationToken cancellationToken = default);
         /// <summary>
         /// Changes user password
         /// </summary>
@@ -66,7 +66,7 @@ namespace Contracts
         /// <exception cref="ArgumentException"/>
         /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task ChangeUserPasswordAsync(UserPasswordChangeRequest userPasswordChangeDTO);
+        Task ChangeUserPasswordAsync(UserPasswordChangeRequest userPasswordChangeDTO, CancellationToken cancellationToken = default);
         /// <summary>
         /// Updates user
         /// </summary>
@@ -74,13 +74,13 @@ namespace Contracts
         /// <exception cref="ArgumentException"/>
         /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task UpdateUserAsync(UpdateUserReques updateUserDTO);
+        Task UpdateUserAsync(UpdateUserReques updateUserDTO, CancellationToken cancellationToken = default);
         /// <summary>
         /// Deletes user
         /// </summary>
         /// <param name="id">Id of user to delete</param>
         /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task DeleteUserAsync(Guid id);
+        Task DeleteUserAsync(Guid id, CancellationToken cancellationToken = default);
     }
 }

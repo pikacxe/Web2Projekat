@@ -23,7 +23,7 @@ namespace TaxiUserData.Helpers
             _settings = settings;
         }
 
-        public async Task SendVerificationMailAsync(string usernEmail)
+        public async Task SendVerificationMailAsync(string usernEmail, CancellationToken cancellationToken = default)
         {
 
             using var client = new SmtpClient(_settings.Host, _settings.Port)
@@ -40,7 +40,7 @@ namespace TaxiUserData.Helpers
             message.Body = mailBody;
 
 
-            await client.SendMailAsync(message);
+            await client.SendMailAsync(message,cancellationToken);
         }
 
     }
