@@ -30,14 +30,21 @@ namespace Common
             var mongoDbSettings = configuration.GetSection(nameof(MongoDBSettings)).Get<MongoDBSettings>();
             if (serviceSettings == null || mongoDbSettings == null)
             {
-                throw new ArgumentNullException(nameof(configuration));
+                throw new ApplicationException(nameof(configuration));
             }
-            var mongoClient = new MongoClient($"{mongoDbSettings.ConnectionString}/{serviceSettings.ServiceName}");
-            var database = mongoClient.GetDatabase(serviceSettings.ServiceName);
+            if (serviceSettings.isValid && mongoDbSettings.isValid)
+            {
+                var mongoClient = new MongoClient($"{mongoDbSettings.ConnectionString}/{serviceSettings.ServiceName}");
+                var database = mongoClient.GetDatabase(serviceSettings.ServiceName);
 
-            // Register database instance as singleton
-            services.AddSingleton(database);
+                // Register database instance as singleton
+                services.AddSingleton(database);
 
+            }
+            else
+            {
+                throw new ApplicationException("Database connection settings invalid");
+            }
             return services;
         }
 
@@ -73,7 +80,7 @@ namespace Common
         public static IServiceCollection AddUserDataServiceSettings(this IServiceCollection services, IConfiguration configuration)
         {
             var serviceSettings = configuration.GetSection(nameof(UserDataServiceSettings)).Get<UserDataServiceSettings>();
-            if (serviceSettings == null)
+            if (serviceSettings == null || !serviceSettings.isValid)
             {
                 throw new ApplicationException("User data service settings not set");
             }

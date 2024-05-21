@@ -16,7 +16,7 @@ namespace TaxiUserData
         public static IServiceCollection AddMailClient(this IServiceCollection services, IConfiguration configuration)
         {
             var mailSettings = configuration.GetSection(nameof(MailClientSettings)).Get<MailClientSettings>();
-            if(mailSettings == null)
+            if(mailSettings == null || !mailSettings.isValid)
             {
                 throw new ApplicationException("Mail client settings not set");
             }

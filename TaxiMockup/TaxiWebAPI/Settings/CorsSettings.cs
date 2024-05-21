@@ -1,4 +1,6 @@
-﻿namespace TaxiWebAPI.Settings
+﻿using Common.Settings;
+
+namespace TaxiWebAPI.Settings
 {
     public class CorsSettings
     {
@@ -11,7 +13,9 @@
         {
             _configuration = configuration;
             PolicyName = policyName;
-            AllowedHosts = _configuration.GetSection("AllowedHosts").Value;
+            AllowedHosts = _configuration.GetSection("AllowedHosts").Value ?? throw new ApplicationException("Cors allowed hosts missing");
         }
+
+
     }
 }

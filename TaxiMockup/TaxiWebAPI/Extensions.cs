@@ -13,7 +13,7 @@ namespace TaxiWebAPI
             services.AddSingleton(serviceProvider =>
             {
                 var serviceSettings = configuration.GetSection(nameof(RideDataServiceSettings)).Get<RideDataServiceSettings>();
-                if(serviceSettings == null)
+                if(serviceSettings == null || !serviceSettings.isValid)
                 {
                     throw new ApplicationException("Ride data service settings not set");
                 }
@@ -26,7 +26,7 @@ namespace TaxiWebAPI
             services.AddSingleton(serviceProvider =>
             {
                 var serviceSettings = configuration.GetSection(nameof(CDNServiceSettings)).Get<CDNServiceSettings>();
-                if (serviceSettings == null)
+                if (serviceSettings == null || !serviceSettings.isValid)
                 {
                     throw new ApplicationException("CDN service settings not set");
                 }
@@ -39,7 +39,7 @@ namespace TaxiWebAPI
             services.AddSingleton(serviceProvider =>
             {
                 var jwtSettings = configuration.GetSection(nameof(JwtTokenSettings)).Get<JwtTokenSettings>();
-                if(jwtSettings == null)
+                if(jwtSettings == null || !jwtSettings.isValid)
                 {
                     throw new ApplicationException("Jwt token settings not set");
                 }

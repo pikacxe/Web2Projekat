@@ -123,15 +123,15 @@ namespace Common.DTO
     public class AuthResponse
     {
         [DataMember]
-        public string UserID { get; set; }
+        public string? UserID { get; set; }
         [DataMember]
-        public string Username { get; set; }
+        public string? Username { get; set; }
         [DataMember]
-        public string UserRole { get; set; }
+        public string? UserRole { get; set; }
         [DataMember]
-        public string Token { get; set; }
+        public string? Token { get; set; }
         [DataMember]
-        public string ProfileImage { get; set; }
+        public string? ProfileImage { get; set; }
     }
 
 }
