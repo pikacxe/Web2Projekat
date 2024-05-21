@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Common.Repository;
 using Common.Entities;
 using Common;
+using TaxiUserData.Helpers;
 
 namespace TaxiUserData
 {
@@ -30,13 +31,13 @@ namespace TaxiUserData
                 IServiceProvider serviceProvider = SetupServices(configuration);
                 int seedPeriod;
                 int.TryParse(configuration.GetSection("SeedPeriod").Value, out seedPeriod);
-                IRepository<User> repo = serviceProvider.GetService<IRepository<User>>() ?? throw new Exception("Database connection missing");
-
+                IRepository<User> repo = serviceProvider.GetService<IRepository<User>>() ?? throw new Exception("Database connection settings missing");
+                MailHelper mailHelper = serviceProvider.GetService<MailHelper>() ?? throw new Exception("Mail client setting missing");
                 // Ensure single admin is created
                 EnsureAdminCreation(repo).Wait();
 
                 ServiceRuntime.RegisterServiceAsync("TaxiUserDataType",
-                    context => new TaxiUserData(context, repo, seedPeriod)).GetAwaiter().GetResult();
+                    context => new TaxiUserData(context, repo,mailHelper, seedPeriod)).GetAwaiter().GetResult();
 
                 ServiceEventSource.Current.ServiceTypeRegistered(Process.GetCurrentProcess().Id, typeof(TaxiUserData).Name);
 
@@ -73,6 +74,7 @@ namespace TaxiUserData
             IServiceCollection services = new ServiceCollection();
             services.AddMongo(configuration);
             services.AddMongoRepository<User>("User");
+            services.AddMailClient(configuration);
 
             return services.BuildServiceProvider();
         }

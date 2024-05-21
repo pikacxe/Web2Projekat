@@ -6,6 +6,8 @@ using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Data;
 using Microsoft.ServiceFabric.Services.Remoting.FabricTransport;
 using Microsoft.ServiceFabric.Services.Remoting;
+using TaxiUserData.Settings;
+using TaxiUserData.Helpers;
 
 [assembly: FabricTransportServiceRemotingProvider(RemotingListenerVersion = RemotingListenerVersion.V2_1, RemotingClientVersion = RemotingClientVersion.V2_1)]
 
@@ -16,12 +18,14 @@ namespace TaxiUserData
         private readonly string _dictName;
         private readonly string _queueName;
         private readonly IReliableStateManager StateManager;
+        private MailHelper _mailClient;
 
-        public UserServiceImpl(string dictName, string queueName, IReliableStateManager stateManager)
+        public UserServiceImpl(string dictName, string queueName, IReliableStateManager stateManager, MailHelper mailClient)
         {
             _dictName = dictName;
             _queueName = queueName;
             StateManager = stateManager;
+            _mailClient = mailClient;
         }
 
         #region User service methods
@@ -260,6 +264,7 @@ namespace TaxiUserData
                     throw new KeyNotFoundException(nameof(User));
                 }
             }
+            await _mailClient.SendVerificationMailAsync(existingUser.Email);
             await QueueDataForLaterProcessingAsync(existingUser, CancellationToken.None);
         }
         public async Task BanUserAsync(Guid userId)
