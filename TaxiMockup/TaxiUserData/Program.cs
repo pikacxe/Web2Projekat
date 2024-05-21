@@ -58,7 +58,7 @@ namespace TaxiUserData
             {
                 User admin = new User()
                 {
-                    Id = Guid.NewGuid(),
+                    Id = new Guid("d725738c-70ea-4573-9944-fad093c1e8e0"),
                     Email = "admin@admin.com",
                     Username = "admin",
                     Password = "password",
