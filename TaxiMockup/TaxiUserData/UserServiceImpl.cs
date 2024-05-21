@@ -265,7 +265,7 @@ namespace TaxiUserData
                     throw new KeyNotFoundException(nameof(User));
                 }
             }
-            await _mailClient.SendVerificationMailAsync(existingUser.Email, cancellationToken);
+            //await _mailClient.SendVerificationMailAsync(existingUser.Email, cancellationToken);
             await QueueDataForLaterProcessingAsync(existingUser, CancellationToken.None);
         }
         public async Task BanUserAsync(Guid userId, CancellationToken cancellationToken)
