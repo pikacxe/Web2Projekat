@@ -10,9 +10,13 @@ namespace Common.MongoDB
         private readonly IMongoCollection<T> dbCollection;
 
         private readonly FilterDefinitionBuilder<T> filterBuilder = Builders<T>.Filter;
-        private readonly ReplaceOptions options = new ReplaceOptions()
+        private readonly ReplaceOptions replaceOptions = new ReplaceOptions()
         {
             IsUpsert = true,
+        };
+        private readonly InsertOneOptions insertOneOptions = new InsertOneOptions()
+        {
+            BypassDocumentValidation = false
         };
 
         public MongoRepository(IMongoDatabase database, string collectionName)
@@ -20,43 +24,44 @@ namespace Common.MongoDB
             dbCollection = database.GetCollection<T>(collectionName);
         }
 
-        public async Task CreateAsync(T entity)
+        public async Task CreateAsync(T entity, CancellationToken cancellationToken)
         {
             if (entity == null)
             {
                 throw new ArgumentNullException(nameof(entity));
             }
-            await dbCollection.InsertOneAsync(entity);
+            
+            await dbCollection.InsertOneAsync(entity,insertOneOptions,cancellationToken);
         }
 
-        public async Task DeleteAsync(Guid id)
+        public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
         {
             FilterDefinition<T> filter = filterBuilder.Eq(entity => entity.Id, id);
-            var res = await dbCollection.DeleteOneAsync(filter);
+            var res = await dbCollection.DeleteOneAsync(filter,cancellationToken);
         }
 
-        public async Task<IReadOnlyCollection<T>> GetAllAsync()
+        public async Task<IReadOnlyCollection<T>> GetAllAsync(CancellationToken cancellationToken)
         {
-            return await dbCollection.Find(filterBuilder.Empty).ToListAsync();
+            return await dbCollection.Find(filterBuilder.Empty).ToListAsync(cancellationToken);
         }
 
-        public async Task<IReadOnlyCollection<T>> GetAllAsync(Expression<Func<T, bool>> filter)
+        public async Task<IReadOnlyCollection<T>> GetAllAsync(Expression<Func<T, bool>> filter, CancellationToken cancellationToken)
         {
-            return await dbCollection.Find(filter).ToListAsync();
+            return await dbCollection.Find(filter).ToListAsync(cancellationToken);
         }
 
-        public async Task<IEntity> GetAsync(Guid id)
+        public async Task<IEntity> GetAsync(Guid id, CancellationToken cancellationToken)
         {
             FilterDefinition<T> filter = filterBuilder.Eq(entity => entity.Id, id);
-            return await dbCollection.Find(filter).FirstOrDefaultAsync();
+            return await dbCollection.Find(filter).FirstOrDefaultAsync(cancellationToken);
         }
 
-        public async Task<IEntity> GetAsync(Expression<Func<T, bool>> filter)
+        public async Task<IEntity> GetAsync(Expression<Func<T, bool>> filter, CancellationToken cancellationToken)
         {
-            return await dbCollection.Find(filter).FirstOrDefaultAsync();
+            return await dbCollection.Find(filter).FirstOrDefaultAsync(cancellationToken);
         }
 
-        public async Task UpdateAsync(T entity)
+        public async Task UpdateAsync(T entity, CancellationToken cancellationToken)
         {
             if (entity == null)
             {
@@ -64,7 +69,7 @@ namespace Common.MongoDB
             }
             
             FilterDefinition<T> filter = filterBuilder.Eq(existingEntity => existingEntity.Id, entity.Id);
-            await dbCollection.ReplaceOneAsync(filter, entity, options);
+            await dbCollection.ReplaceOneAsync(filter, entity, replaceOptions,cancellationToken);
         }
     }
 }
