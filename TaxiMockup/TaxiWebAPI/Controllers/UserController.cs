@@ -223,7 +223,7 @@ namespace TaxiWebAPI.Controllers
                 return Unauthorized("User ids does not match");
             }
             var requestUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (requestUserId == null)
+            if (requestUserId == null || requestUserId != id.ToString())
             {
                 return BadRequest("You can only change own password");
             }
@@ -267,7 +267,7 @@ namespace TaxiWebAPI.Controllers
         public async Task<ActionResult> ChangeUserPassword(Guid id, UserPasswordChangeRequest request)
         {
             var requestUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if(requestUserId == null)
+            if(requestUserId == null || requestUserId != id.ToString())
             {
                 return BadRequest("You can only change own password");
             }
@@ -328,6 +328,10 @@ namespace TaxiWebAPI.Controllers
                     {
                         return BadRequest("Invalid data");
                     }
+                    else if (innerEx is ArgumentException)
+                    {
+                        return BadRequest(innerEx.Message);
+                    }
                     // Add more specific exceptions as needed.
                 }
                 // If none of the inner exceptions are handled specifically, return a generic server error.
@@ -362,6 +366,10 @@ namespace TaxiWebAPI.Controllers
                     else if (innerEx is ArgumentNullException)
                     {
                         return BadRequest("Invalid data");
+                    }
+                    else if(innerEx is ArgumentException)
+                    {
+                        return BadRequest(innerEx.Message);
                     }
                     // Add more specific exceptions as needed.
                 }

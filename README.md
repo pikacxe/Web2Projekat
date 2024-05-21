@@ -134,8 +134,9 @@ Mock uber like app with microservice architecture where users can request a ride
 - [ ] add password hashing (currently disabled for easier debugging)
 - [x] add CancelationTokens to repository methods
 - [x] add app settings validation
-- [ ] update data service to check for edge cases
-    - [ ] only users of type driver can be verified/banned
-    - [ ] only users of type user can request/finish rides
-    - [ ] only users of type driver can accept rides
-    - [ ] check for id consistency when updating user or changing password (users can only change own data)
+- [x] update data service to check for edge cases
+    - [x] only users of type driver can be verified/banned
+    - [x] only users of type user can request/finish rides
+    - [x] only users of type driver can accept rides
+    - [x] check for id consistency when updating user or changing password (users can only change own data)
+- [ ] add method that encapsulates service event message creation

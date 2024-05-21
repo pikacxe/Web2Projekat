@@ -24,17 +24,19 @@ namespace Contracts
         /// <returns></returns>
         Task<IEnumerable<UserInfo>> GetAllUnverifiedAsync(CancellationToken cancellationToken = default);
         /// <summary>
-        /// Verrifies user
+        /// Verifies driver if not already verified
         /// </summary>
         /// <param name="userId">Id of user to verify</param>
         /// <exception cref="KeyNotFoundException"/>
+        /// <exception cref="ArgumentException"/>
         /// <returns></returns>
         Task VerifyUserAsync(Guid userId, CancellationToken cancellationToken = default);
         /// <summary>
-        /// Bans user
+        /// Bans driver if not already banned
         /// </summary>
         /// <param name="userId">Id of user to ban</param>
         /// <exception cref="KeyNotFoundException"/>
+        /// <exception cref="ArgumentException"/>
         /// <returns></returns>
         Task BanUserAsync(Guid userId, CancellationToken cancellationToken = default);
         /// <summary>

@@ -254,6 +254,14 @@ namespace TaxiUserData
                 if (user.HasValue)
                 {
                     existingUser = user.Value;
+                    if (existingUser.UserType != UserType.Driver)
+                    {
+                        throw new ArgumentException("Only drivers can be verified");
+                    }
+                    if(existingUser.UserState == UserState.Verified)
+                    {
+                        throw new ArgumentException("Driver is already verified");
+                    }
                     existingUser.UserState = UserState.Verified;
                     existingUser._VerifiedAt = DateTimeOffset.UtcNow;
                     existingUser._UpdatedAt = DateTimeOffset.UtcNow;
@@ -278,6 +286,14 @@ namespace TaxiUserData
                 if (user.HasValue)
                 {
                     existingUser = user.Value;
+                    if (existingUser.UserType != UserType.Driver)
+                    {
+                        throw new ArgumentException("Only drivers can be banned");
+                    }
+                    if (existingUser.UserState == UserState.Denied)
+                    {
+                        throw new ArgumentException("Driver is already banned");
+                    }
                     existingUser.UserState = UserState.Denied;
                     existingUser._VerifiedAt = null;
                     existingUser._UpdatedAt = DateTimeOffset.UtcNow;

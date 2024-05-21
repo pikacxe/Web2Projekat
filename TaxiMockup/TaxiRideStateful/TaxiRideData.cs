@@ -7,6 +7,7 @@ using Common.Repository;
 using Common.Settings;
 using Microsoft.ServiceFabric.Services.Remoting.FabricTransport.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Runtime;
+using Microsoft.ServiceFabric.Services.Remoting.Client;
 
 namespace TaxiRideData
 {
@@ -19,14 +20,16 @@ namespace TaxiRideData
         private readonly string _queueName = "ridesQueue";
         private readonly IRepository<Ride> _repo;
         private readonly UserDataServiceSettings _serviceSettings;
+        private readonly ServiceProxyFactory serviceProxyFactory;
         private readonly int seedPeriod;
         private readonly TimeSpan timeout = TimeSpan.FromSeconds(10); // timeout for realiable collections
-        public TaxiRideData(StatefulServiceContext context, IRepository<Ride> repo, UserDataServiceSettings serviceSettings, int seedPeriod)
+        public TaxiRideData(StatefulServiceContext context, IRepository<Ride> repo,ServiceProxyFactory proxyFactory, UserDataServiceSettings serviceSettings, int seedPeriod)
             : base(context)
         {
             _repo = repo;
             _serviceSettings = serviceSettings;
             this.seedPeriod = seedPeriod;
+            serviceProxyFactory = proxyFactory;
         }
 
         #region Data seeding methods
@@ -97,7 +100,7 @@ namespace TaxiRideData
                     settings.UseWrappedMessage = true;
                     return new FabricTransportServiceRemotingListener(
                         context,
-                        new RideServiceImpl(_dictName,_queueName, StateManager, _serviceSettings ),
+                        new RideServiceImpl(_dictName,_queueName, StateManager, _serviceSettings, serviceProxyFactory ),
                         settings);
                 })
             ];
