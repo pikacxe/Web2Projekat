@@ -9,6 +9,7 @@ import { Navbar } from './components/Navbar';
 
 function App() {
   return (
+    <div className='App'>
     <BrowserRouter>
       <Navbar/>
       <Routes>
@@ -19,6 +20,7 @@ function App() {
         <Route path='/driver-dashboard' element={<DriverDashboard/>}/>
       </Routes>
     </BrowserRouter>
+    </div>
   );
 }
 

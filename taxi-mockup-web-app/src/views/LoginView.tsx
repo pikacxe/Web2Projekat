@@ -1,5 +1,7 @@
+import { LoginForm } from "../components/LoginForm"
+
 export const LoginView = () => {
     return (
-        <h1>Hello from login view</h1>
+        <LoginForm/>
     )
 }
