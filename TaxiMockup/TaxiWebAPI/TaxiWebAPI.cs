@@ -79,7 +79,9 @@ namespace TaxiWebAPI
                         {
                             options.AddPolicy(name: corsSettings.PolicyName, policy =>
                             {
-                                policy.WithOrigins(corsSettings.AllowedHosts);
+                                policy.WithOrigins(corsSettings.AllowedHosts)
+                                .AllowAnyMethod()
+                                .AllowAnyHeader();
                             });
                         });
                         builder.Services.AddEndpointsApiExplorer();
