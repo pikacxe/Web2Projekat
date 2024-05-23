@@ -3,9 +3,9 @@
   <Parameters>
     <Parameter Name="TaxiUserData_MinReplicaSetSize" Value="3" />
     <Parameter Name="TaxiUserData_TargetReplicaSetSize" Value="3" />
-    <Parameter Name="TaxiUserData_PartitionCount" Value="10" />
+    <Parameter Name="TaxiUserData_PartitionCount" Value="3" />
     <Parameter Name="TaxiUserData_LowKey" Value="0" />
-    <Parameter Name="TaxiUserData_HighKey" Value="9" />
+    <Parameter Name="TaxiUserData_HighKey" Value="2" />
     <Parameter Name="TaxiCDN_InstanceCount" Value="-1" />
     <Parameter Name="TaxiRideData_MinReplicaSetSize" Value="3" />
     <Parameter Name="TaxiRideData_TargetReplicaSetSize" Value="3" />

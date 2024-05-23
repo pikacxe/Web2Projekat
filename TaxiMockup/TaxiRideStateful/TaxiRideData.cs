@@ -23,7 +23,7 @@ namespace TaxiRideData
         private readonly ServiceProxyFactory serviceProxyFactory;
         private readonly int seedPeriod;
         private readonly TimeSpan timeout = TimeSpan.FromSeconds(10); // timeout for realiable collections
-        public TaxiRideData(StatefulServiceContext context, IRepository<Ride> repo,ServiceProxyFactory proxyFactory, UserDataServiceSettings serviceSettings, int seedPeriod)
+        public TaxiRideData(StatefulServiceContext context, IRepository<Ride> repo, ServiceProxyFactory proxyFactory, UserDataServiceSettings serviceSettings, int seedPeriod)
             : base(context)
         {
             _repo = repo;
@@ -40,9 +40,9 @@ namespace TaxiRideData
         }
         private async Task SeedDataToServiceFabricAsync(IEnumerable<Ride> data, CancellationToken cancellationToken)
         {
+            var myDictionary = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(_dictName);
             using (var tx = StateManager.CreateTransaction())
             {
-                var myDictionary = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(tx, _dictName, timeout);
                 foreach (var item in data)
                 {
                     await myDictionary.AddOrUpdateAsync(tx, item.Id, item, (key, value) => item, timeout, cancellationToken);
@@ -53,9 +53,9 @@ namespace TaxiRideData
         }
         private async Task ProcessQueuedDataAsync(CancellationToken cancellationToken)
         {
+            var myQueue = await StateManager.GetOrAddAsync<IReliableQueue<Ride>>(_queueName);
             using (var tx = StateManager.CreateTransaction())
             {
-                var myQueue = await StateManager.GetOrAddAsync<IReliableQueue<Ride>>(_queueName, timeout);
                 while (!cancellationToken.IsCancellationRequested)
                 {
                     var result = await myQueue.TryDequeueAsync(tx, timeout, cancellationToken);
@@ -113,14 +113,22 @@ namespace TaxiRideData
         /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service replica.</param>
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
-            // Read data from MongoDB at startup
-            await SeedDataFromMongoDBAsync(cancellationToken);
-
-            // Example loop to periodically process queued data (if any)
-            while (!cancellationToken.IsCancellationRequested)
+            try
             {
-                await ProcessQueuedDataAsync(cancellationToken);
-                await Task.Delay(TimeSpan.FromSeconds(seedPeriod), cancellationToken);
+
+                // Read data from MongoDB at startup
+                await SeedDataFromMongoDBAsync(cancellationToken);
+
+                // Example loop to periodically process queued data (if any)
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    await ProcessQueuedDataAsync(cancellationToken);
+                    await Task.Delay(TimeSpan.FromSeconds(seedPeriod), cancellationToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                ServiceEventSource.Current.ServiceMessage(Context, ex.Message);
             }
         }
     }

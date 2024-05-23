@@ -39,9 +39,9 @@ namespace TaxiUserData
         }
         private async Task SeedDataToServiceFabricAsync(IEnumerable<User> data, CancellationToken cancellationToken)
         {
+            var myDictionary = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(_dictName);
             using (var tx = StateManager.CreateTransaction())
             {
-                var myDictionary = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(tx, _dictName, timeout);
                 foreach (var item in data)
                 {
                     await myDictionary.AddOrUpdateAsync(tx, item.Id, item, (key, value) => item, timeout, cancellationToken);
@@ -52,9 +52,9 @@ namespace TaxiUserData
         }
         private async Task ProcessQueuedDataAsync(CancellationToken cancellationToken)
         {
+                var myQueue = await StateManager.GetOrAddAsync<IReliableQueue<User>>(_queueName);
             using (var tx = StateManager.CreateTransaction())
             {
-                var myQueue = await StateManager.GetOrAddAsync<IReliableQueue<User>>(tx, _queueName, timeout);
                 while (!cancellationToken.IsCancellationRequested)
                 {
                     var result = await myQueue.TryDequeueAsync(tx, TimeSpan.FromSeconds(5), cancellationToken);
@@ -111,14 +111,21 @@ namespace TaxiUserData
         /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service instance.</param>
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
-            // Read data from MongoDB at startup
-            await SeedDataFromMongoDBAsync(cancellationToken);
-
-            // Example loop to periodically process queued data (if any)
-            while (!cancellationToken.IsCancellationRequested)
+            try
             {
-                await ProcessQueuedDataAsync(cancellationToken);
-                await Task.Delay(TimeSpan.FromSeconds(seedPeriod), cancellationToken);
+                // Read data from MongoDB at startup
+                await SeedDataFromMongoDBAsync(cancellationToken);
+
+                // Example loop to periodically process queued data (if any)
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    await ProcessQueuedDataAsync(cancellationToken);
+                    await Task.Delay(TimeSpan.FromSeconds(seedPeriod), cancellationToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                ServiceEventSource.Current.ServiceMessage(Context, ex.Message);
             }
         }
     }
