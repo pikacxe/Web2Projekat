@@ -7,7 +7,7 @@ export enum ROLE {
 }
 
 export type AuthContext = {
-  user: AuthResponse;
+  user?: AuthResponse;
   login: (user: AuthResponse) => void;
   logout: () => void;
 };

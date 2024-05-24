@@ -1,0 +1,15 @@
+.nav{
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-left:  1rem;
+}
+.nav-link {
+    text-decoration: none;
+    color: white;
+    margin-left: 1rem;
+}
+
+.hidden {
+    display: none
+}
