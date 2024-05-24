@@ -8,27 +8,21 @@ import { DriverDashboard } from "./views/Driver/DriverDashboard";
 import { Navbar } from "./components/Navbar";
 import { AuthProvider } from "./hooks/useAuth";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { ROLE } from "./models/AuthModel";
 
 function App() {
   return (
     <div className="App">
       <BrowserRouter>
-        <Navbar />
         <AuthProvider>
+          <Navbar />
           <Routes>
             <Route path="/" element={<LoginView />} />
-            <Route
-              path="/register"
-              element={
-                <ProtectedRoute>
-                  <RegisterView />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/register" element={<RegisterView />} />
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute role={ROLE.User}>
                   <UserDashboard />
                 </ProtectedRoute>
               }
@@ -36,7 +30,7 @@ function App() {
             <Route
               path="/admin-dashboard"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute role={ROLE.Admin}>
                   <AdminDashboard />
                 </ProtectedRoute>
               }
@@ -44,7 +38,7 @@ function App() {
             <Route
               path="/driver-dashboard"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute role={ROLE.Driver}>
                   <DriverDashboard />
                 </ProtectedRoute>
               }
