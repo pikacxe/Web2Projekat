@@ -76,7 +76,7 @@ namespace Contracts
         /// <exception cref="ArgumentException"/>
         /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task UpdateUserAsync(UpdateUserReques updateUserDTO, CancellationToken cancellationToken = default);
+        Task UpdateUserAsync(UpdateUserRequest updateUserDTO, CancellationToken cancellationToken = default);
         /// <summary>
         /// Deletes user
         /// </summary>

@@ -82,7 +82,7 @@ namespace TaxiUserData
                         {
                             AuthResponse authResponse = new AuthResponse()
                             {
-                                UserID = currentUser.Id.ToString(),
+                                UserId = currentUser.Id.ToString(),
                                 ProfileImage = currentUser.UserPicture,
                                 Username = currentUser.Username,
                                 UserRole = currentUser.UserType.ToString()
@@ -196,7 +196,7 @@ namespace TaxiUserData
             await QueueDataForLaterProcessingAsync(user, cancellationToken);
             return user.Id;
         }
-        public async Task UpdateUserAsync(UpdateUserReques updateUserDTO, CancellationToken cancellationToken)
+        public async Task UpdateUserAsync(UpdateUserRequest updateUserDTO, CancellationToken cancellationToken)
         {
             if (updateUserDTO == null)
             {

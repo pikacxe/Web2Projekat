@@ -216,7 +216,7 @@ namespace TaxiWebAPI.Controllers
         [HttpPut]
         [Route("{id}/update")]
         [Authorize]
-        public async Task<ActionResult> UpdateUser(Guid id, UpdateUserReques updateUserDTO)
+        public async Task<ActionResult> UpdateUser(Guid id, UpdateUserRequest updateUserDTO)
         {
             if(id != updateUserDTO.Id)
             {
@@ -425,7 +425,7 @@ namespace TaxiWebAPI.Controllers
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
-                    new Claim(ClaimTypes.NameIdentifier, response.UserID),
+                    new Claim(ClaimTypes.NameIdentifier, response.UserId),
                     new Claim(ClaimTypes.Role, response.UserRole)
                 }),
                 Expires = DateTime.UtcNow.AddHours(1),

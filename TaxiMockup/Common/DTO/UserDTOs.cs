@@ -47,7 +47,7 @@ namespace Common.DTO
     }
 
     [DataContract]
-    public class UpdateUserReques
+    public class UpdateUserRequest
     {
         [DataMember]
         [Required]
@@ -123,7 +123,7 @@ namespace Common.DTO
     public class AuthResponse
     {
         [DataMember]
-        public string? UserID { get; set; }
+        public string? UserId { get; set; }
         [DataMember]
         public string? Username { get; set; }
         [DataMember]
