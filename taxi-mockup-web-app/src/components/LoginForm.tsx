@@ -1,7 +1,7 @@
 import "./LoginForm.css";
 import { ChangeEvent, FormEvent, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { AuthResponse, LoginRequest } from "../models/User/UserModel";
+import { LoginRequest } from "../models/User/UserModel";
 import {
   Button,
   Divider,
@@ -11,13 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 import LoginIcon from "@mui/icons-material/Login";
-import axios from "axios";
-
-const apiUrl = process.env.REACT_APP_API_URL;
-
-const client = axios.create({
-  baseURL: apiUrl + "users/login",
-});
+import authService from "../services/AuthService";
 
 export const LoginForm = () => {
   const [emailField, setEmailField] = useState("");
@@ -44,18 +38,13 @@ export const LoginForm = () => {
         email: emailField,
         password: passwordField,
       };
-      client
-        .post("", loginReq)
-        .then((res) => {
-          if (res.status === 200) {
-            console.log(res.data as AuthResponse);
-            console.log("radim");
-            login(res.data as AuthResponse);
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+      authService.login(loginReq).then((res) => {
+        if (res) {
+          login(res);
+        } else {
+          // TODO error messaging with snackbar
+        }
+      });
     }
   }
 
