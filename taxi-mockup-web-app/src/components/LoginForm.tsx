@@ -2,7 +2,14 @@ import "./LoginForm.css";
 import { ChangeEvent, FormEvent, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { AuthResponse, LoginRequest } from "../models/User/UserModel";
-import { Button, FormControl, FormLabel, TextField } from "@mui/material";
+import {
+  Button,
+  Divider,
+  FormControl,
+  FormLabel,
+  TextField,
+  Typography,
+} from "@mui/material";
 import LoginIcon from "@mui/icons-material/Login";
 import axios from "axios";
 
@@ -66,7 +73,11 @@ export const LoginForm = () => {
 
   return (
     <form className="loginForm" onSubmit={handleSubmit}>
-      <h1 style={{ textAlign: "center" }}>Login</h1>
+      <Typography variant="h2" textAlign="center">
+        Login
+      </Typography>
+      <Divider variant="middle" />
+      <br />
       <FormControl>
         <FormLabel>Email</FormLabel>
         <TextField
