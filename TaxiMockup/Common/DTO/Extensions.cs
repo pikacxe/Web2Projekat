@@ -29,7 +29,7 @@ namespace Common.DTO
             Username = user.Username,
             Email = user.Email,
             Address = user.Address,
-            DateOfBirth = user.DateOfBirth,
+            DateOfBirth = user.DateOfBirth?.Date.ToShortDateString(),
             Fullname = user.Fullname,
             UserPicture = user.UserPicture,
             UserState = user.UserState,

@@ -108,7 +108,7 @@ namespace Common.DTO
         [DataMember]
         public string? Fullname { get; set; }
         [DataMember]
-        public DateTimeOffset? DateOfBirth { get; set; }
+        public string? DateOfBirth { get; set; }
         [DataMember]
         public string? Address { get; set; }
         [DataMember]

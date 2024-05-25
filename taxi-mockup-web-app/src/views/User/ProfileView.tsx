@@ -71,9 +71,7 @@ export const ProfileView = () => {
           Date of birth
         </Typography>
         <Typography className="profileInfo" variant="h5">
-          {profile?.dateOfBirth != null
-            ? profile.dateOfBirth.split("T")[0]
-            : ""}
+          {profile?.dateOfBirth}
         </Typography>
         <Divider />
       </Box>
