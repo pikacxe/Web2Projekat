@@ -9,41 +9,44 @@ import { Navbar } from "./components/Navbar";
 import { AuthProvider } from "./hooks/useAuth";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ROLE } from "./models/AuthModel";
+import { AlertProvider } from "./hooks/useAlert";
 
 function App() {
   return (
     <div className="App">
       <BrowserRouter>
         <AuthProvider>
-          <Navbar />
-          <Routes>
-            <Route path="/" element={<LoginView />} />
-            <Route path="/register" element={<RegisterView />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute role={ROLE.User}>
-                  <UserDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin-dashboard"
-              element={
-                <ProtectedRoute role={ROLE.Admin}>
-                  <AdminDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/driver-dashboard"
-              element={
-                <ProtectedRoute role={ROLE.Driver}>
-                  <DriverDashboard />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
+          <AlertProvider>
+            <Navbar />
+            <Routes>
+              <Route path="/" element={<LoginView />} />
+              <Route path="/register" element={<RegisterView />} />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute role={ROLE.User}>
+                    <UserDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin-dashboard"
+                element={
+                  <ProtectedRoute role={ROLE.Admin}>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/driver-dashboard"
+                element={
+                  <ProtectedRoute role={ROLE.Driver}>
+                    <DriverDashboard />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </AlertProvider>
         </AuthProvider>
       </BrowserRouter>
     </div>

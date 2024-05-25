@@ -12,12 +12,14 @@ import {
 } from "@mui/material";
 import LoginIcon from "@mui/icons-material/Login";
 import authService from "../services/AuthService";
+import { useAlert } from "../hooks/useAlert";
 
 export const LoginForm = () => {
   const [emailField, setEmailField] = useState("");
   const [passwordField, setPasswordField] = useState("");
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
+  const alert = useAlert();
 
   const { login } = useAuth();
 
@@ -38,13 +40,19 @@ export const LoginForm = () => {
         email: emailField,
         password: passwordField,
       };
-      authService.login(loginReq).then((res) => {
-        if (res) {
-          login(res);
-        } else {
-          // TODO error messaging with snackbar
-        }
-      });
+      authService
+        .login(loginReq)
+        .then((res) => {
+          if (res) {
+            login(res);
+          } else {
+            alert.showAlert("Invalid login data. Please try again");
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+          alert.showAlert("Error occured while proccessing your request");
+        });
     }
   }
 
