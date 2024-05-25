@@ -2,14 +2,15 @@ import { useEffect, useState } from "react";
 import userService from "../../services/UserService";
 import { useAuth } from "../../hooks/useAuth";
 import { UserInfo } from "../../models/User/UserModel";
-import { Avatar, Divider, Paper, Typography } from "@mui/material";
+import { Avatar, Box, Divider, Paper, Typography } from "@mui/material";
+
+import "./ProfileView.css";
 
 export const ProfileView = () => {
   const currentUser = useAuth().user;
   const [profile, setProfile] = useState<UserInfo | null>(null);
   useEffect(() => {
     if (currentUser) {
-      console.log(currentUser.userId);
       userService
         .getUserById(currentUser.token, currentUser.userId)
         .then((data) => {
@@ -18,38 +19,64 @@ export const ProfileView = () => {
     } else {
       console.log("Error while getting user profile");
     }
-  });
+  }, [currentUser]);
   return (
     <Paper
       className="profile"
       sx={{
         padding: "1rem",
-        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-start",
+        alignContent: "space-evenly",
       }}
     >
-      <Avatar
-        src={profile?.userPicture}
-        sx={{
-          width: 100,
-          height: 100,
-        }}
-      />
-      <Divider />
-      <Typography variant="h5">Username: {profile?.username}</Typography>
-      <Divider />
-      <Typography variant="h5">User type: {profile?.userType}</Typography>
-      <Divider />
-      <Typography variant="h5">User state: {profile?.userState}</Typography>
-      <Divider />
-      <Typography variant="h5">Email: {profile?.email}</Typography>
-      <Divider />
-      <Typography variant="h5">Fullname: {profile?.fullName}</Typography>
-      <Divider />
-      <Typography variant="h5">Address</Typography>
-      <Typography variant="body1">{profile?.address}</Typography>
-      <Divider />
-      <Typography variant="h5">Date of birth:{profile?.dateOfBirth}</Typography>
-      <Divider />
+      <Box alignContent="center" justifyContent="center" display="flex">
+        <Avatar
+          src={profile?.userPicture}
+          sx={{
+            width: 120,
+            height: 120,
+            marginBottom: "1.5rem",
+          }}
+        />
+      </Box>
+      <Box>
+        <Typography textAlign="center" variant="h4">
+          {profile?.username}
+        </Typography>
+        <Divider />
+        <Typography className="profileLabel" variant="h4">
+          Email
+        </Typography>
+        <Typography className="profileInfo" variant="h6">
+          {profile?.email}
+        </Typography>
+        <Divider />
+        <Typography className="profileLabel" variant="h4">
+          Fullname
+        </Typography>
+        <Typography className="profileInfo" variant="h5">
+          {profile?.fullname}
+        </Typography>
+        <Divider />
+        <Typography className="profileLabel" variant="h4">
+          Address
+        </Typography>
+        <Typography className="profileInfo" variant="body1">
+          {profile?.address}
+        </Typography>
+        <Divider />
+        <Typography className="profileLabel" variant="h4">
+          Date of birth
+        </Typography>
+        <Typography className="profileInfo" variant="h5">
+          {profile?.dateOfBirth != null
+            ? profile.dateOfBirth.split("T")[0]
+            : ""}
+        </Typography>
+        <Divider />
+      </Box>
     </Paper>
   );
 };

@@ -2,7 +2,7 @@ export interface UserInfo {
   userId: string;
   username: string;
   email: string;
-  fullName: string;
+  fullname: string;
   dateOfBirth: string;
   address: string;
   userType: string;
