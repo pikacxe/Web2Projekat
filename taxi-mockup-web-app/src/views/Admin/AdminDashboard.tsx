@@ -6,8 +6,10 @@ import { useEffect, useState } from "react";
 import { UserInfo } from "../../models/User/UserModel";
 import userService from "../../services/UserService";
 import { useAuth } from "../../hooks/useAuth";
+import { useAlert } from "../../hooks/useAlert";
 
 export const AdminDashboard = () => {
+  const alert = useAlert();
   const [users, setUsers] = useState<UserInfo[]>([]);
   const [usersUnverified, setUnverifiedUsers] = useState<UserInfo[]>([]);
   const token = useAuth().user?.token as string;
@@ -20,8 +22,9 @@ export const AdminDashboard = () => {
       })
       .catch((err) => {
         console.log(err);
+        alert.showAlert("Error occured while getting users");
       });
-  }, [token]);
+  }, [token, alert]);
 
   useEffect(() => {
     userService
