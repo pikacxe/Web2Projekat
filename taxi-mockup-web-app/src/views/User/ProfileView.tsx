@@ -42,32 +42,32 @@ export const ProfileView = () => {
         />
       </Box>
       <Box>
-        <Typography textAlign="center" variant="h4">
+        <Typography textAlign="center" variant="h5">
           {profile?.username}
         </Typography>
         <Divider />
-        <Typography className="profileLabel" variant="h4">
+        <Typography className="profileLabel" variant="h5">
           Email
         </Typography>
         <Typography className="profileInfo" variant="h6">
           {profile?.email}
         </Typography>
         <Divider />
-        <Typography className="profileLabel" variant="h4">
+        <Typography className="profileLabel" variant="h5">
           Fullname
         </Typography>
         <Typography className="profileInfo" variant="h5">
           {profile?.fullname}
         </Typography>
         <Divider />
-        <Typography className="profileLabel" variant="h4">
+        <Typography className="profileLabel" variant="h5">
           Address
         </Typography>
         <Typography className="profileInfo" variant="body1">
           {profile?.address}
         </Typography>
         <Divider />
-        <Typography className="profileLabel" variant="h4">
+        <Typography className="profileLabel" variant="h5">
           Date of birth
         </Typography>
         <Typography className="profileInfo" variant="h5">

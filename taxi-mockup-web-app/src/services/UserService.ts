@@ -119,7 +119,7 @@ const changeUserPassword = async (
 const verifyDriver = async (token: string, id: string): Promise<boolean> => {
   try {
     const headers = { Authorization: `Bearer ${token}` };
-    const res = await client.patch(`${id}/verify`, { headers });
+    const res = await client.patch(`${id}/verify`, {}, { headers });
     return res.status === 204;
   } catch (err) {
     console.log(err);
@@ -131,7 +131,7 @@ const verifyDriver = async (token: string, id: string): Promise<boolean> => {
 const banDriver = async (token: string, id: string): Promise<boolean> => {
   try {
     const headers = { Authorization: `Bearer ${token}` };
-    const res = await client.patch(`${id}/ban`, { headers });
+    const res = await client.patch(`${id}/ban`, {}, { headers });
     return res.status === 204;
   } catch (err) {
     console.log(err);
