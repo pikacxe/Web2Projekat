@@ -106,6 +106,8 @@ namespace TaxiUserData
                 while (await enumerator.MoveNextAsync(cancellationToken))
                 {
                     var currentUser = enumerator.Current.Value;
+                    if (currentUser.UserType == UserType.Admin)
+                        continue;
                     result.Add(currentUser.AsInfoDTO());
                 }
                 enumerator.Dispose();
