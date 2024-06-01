@@ -8,5 +8,5 @@
 - [ ] implement user/driver dashboard
   - [ ] implement countdown (web sockets?)
   - [ ] implement chat between passenger and driver
-- [ ] add global error messages (snackbar)
+- [x] add global error messages (snackbar)
 - [x] add delete confirmation dialog

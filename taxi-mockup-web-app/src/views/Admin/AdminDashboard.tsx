@@ -22,7 +22,7 @@ export const AdminDashboard = () => {
       })
       .catch((err) => {
         console.log(err);
-        alert.showAlert("Error occured while getting users");
+        alert.showAlert("Error occured while getting users", "error");
       });
   }, [token, alert]);
 

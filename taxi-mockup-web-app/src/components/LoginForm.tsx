@@ -46,12 +46,15 @@ export const LoginForm = () => {
           if (res) {
             login(res);
           } else {
-            alert.showAlert("Invalid login data. Please try again");
+            alert.showAlert("Invalid login data. Please try again", "error");
           }
         })
         .catch((err) => {
           console.log(err);
-          alert.showAlert("Error occured while proccessing your request");
+          alert.showAlert(
+            "Error occured while proccessing your request",
+            "error"
+          );
         });
     }
   }

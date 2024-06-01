@@ -1,8 +1,12 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
 import Snackbar from "@mui/material/Snackbar";
+import { Alert } from "@mui/material";
+
+type AlertSeverity = "error" | "success" | "info" | "warning";
 
 type AlertProp = {
-  showAlert: (message: string) => void;
+  showAlert: (message: string, severity: AlertSeverity) => void;
+  hideAlert: () => void;
 };
 
 const AlertContext = createContext<AlertProp | null>(null);
@@ -20,9 +24,11 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
+  const [severity, setSeverity] = useState<AlertSeverity>("info");
 
-  const showAlert = (newMessage: string) => {
+  const showAlert = (newMessage: string, severity: AlertSeverity = "info") => {
     setMessage(newMessage);
+    setSeverity(severity);
     setOpen(true);
   };
 
@@ -33,6 +39,7 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({
   const value: AlertProp = useMemo(
     () => ({
       showAlert,
+      hideAlert,
     }),
     []
   );
@@ -44,9 +51,17 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({
         open={open}
         autoHideDuration={4000}
         onClose={hideAlert}
-        message={message}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      />
+      >
+        <Alert
+          onClose={hideAlert}
+          severity={severity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {message}
+        </Alert>
+      </Snackbar>
     </AlertContext.Provider>
   );
 };
