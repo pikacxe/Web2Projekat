@@ -5,9 +5,9 @@
 - [X] implement profile editing
 - [X] implement picture upload
 - [ ] implement password change
-- [ ] implement user/driver dashboard
-  - [ ] implement ride request form
-  - [ ] implement ride acceptance
+- [X] implement user/driver dashboard
+  - [X] implement ride request form
+  - [X] implement ride acceptance
   - [ ] implement countdown (web sockets?)
   - [ ] implement chat between passenger and driver
 - [x] add global error messages (snackbar)

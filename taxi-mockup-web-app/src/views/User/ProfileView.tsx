@@ -102,6 +102,15 @@ export const ProfileView = () => {
           Edit profile
         </Button>
       </Box>
+      {profile?.userState === "Unverified" && (
+        <Paper variant="outlined" sx={{ backgroundColor: "orange" }}>
+          <Typography variant="body1" padding="1rem">
+            You driver account is currently awating verification. You will be
+            notified when that happens. You can't accept rides until you become
+            verified.
+          </Typography>
+        </Paper>
+      )}
     </Paper>
   );
 };

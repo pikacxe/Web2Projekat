@@ -1,6 +1,6 @@
 import Grid from "@mui/material/Unstable_Grid2";
 import { ProfileView } from "../User/ProfileView";
-import { Box, Typography, Paper } from "@mui/material";
+import { Box, Typography, Paper, Divider } from "@mui/material";
 import { UserDataGrid } from "../../components/User/UserDataGrid";
 import { useEffect, useState } from "react";
 import { UserInfo } from "../../models/User/UserModel";
@@ -45,31 +45,30 @@ export const AdminDashboard = () => {
           <ProfileView />
         </Grid>
         <Grid xs={12} sm={12} md={12} lg={8} xl={9}>
-          <Box>
-            <Paper variant="outlined" sx={{ padding: "1rem" }}>
-              <Typography variant="h3">
-                Drivers currently awaiting verification
+          <Paper variant="outlined" sx={{ padding: "2rem", height: "50%" }}>
+            <Typography variant="h4">
+              Drivers currently awaiting verification
+            </Typography>
+            <Divider />
+            {usersUnverified.length > 0 ? (
+              <UserDataGrid users={usersUnverified} actionsType="verify|ban" />
+            ) : (
+              <Typography variant="h6" marginY="1rem">
+                No unverified drivers curently in system
               </Typography>
-              {usersUnverified.length > 0 ? (
-                <UserDataGrid
-                  users={usersUnverified}
-                  actionsType="verify|ban"
-                />
-              ) : (
-                <Typography>
-                  No unverified drivers curently in system
-                </Typography>
-              )}
-            </Paper>
-            <Paper variant="outlined" sx={{ padding: "1rem" }}>
-              <Typography variant="h3">Users currently in system</Typography>
-              {users.length > 0 ? (
-                <UserDataGrid users={users} actionsType="delete" />
-              ) : (
-                <Typography>"No users curently in system</Typography>
-              )}
-            </Paper>
-          </Box>
+            )}
+          </Paper>
+          <Paper variant="outlined" sx={{ padding: "2rem", height: "50%" }}>
+            <Typography variant="h4">Users currently in system</Typography>
+            <Divider />
+            {users.length > 0 ? (
+              <UserDataGrid users={users} actionsType="delete" />
+            ) : (
+              <Typography variant="h6" marginY="1rem">
+                No users curently in system
+              </Typography>
+            )}
+          </Paper>
         </Grid>
       </Grid>
     </Box>

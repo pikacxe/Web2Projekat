@@ -93,7 +93,7 @@ const requestRide = async (
   try {
     const headers = { Authorization: `Bearer ${token}` };
     const res = await client.post("request", payload, { headers });
-    return res.status === 204;
+    return res.status === 201;
   } catch (err) {
     console.log(err);
     return false;
