@@ -10,6 +10,7 @@ import { AuthProvider } from "./hooks/useAuth";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ROLE } from "./models/AuthModel";
 import { AlertProvider } from "./hooks/useAlert";
+import { UpdateProfileView } from "./views/User/UpdateProfile";
 
 function App() {
   return (
@@ -42,6 +43,14 @@ function App() {
                 element={
                   <ProtectedRoute role={ROLE.Driver}>
                     <DriverDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/:dashboard/:userId"
+                element={
+                  <ProtectedRoute role={ROLE.LoggeIn}>
+                    <UpdateProfileView />
                   </ProtectedRoute>
                 }
               />

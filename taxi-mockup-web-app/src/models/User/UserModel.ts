@@ -27,7 +27,7 @@ export interface RegisterRequest {
   username: string;
   email: string;
   password: string;
-  fullName: string;
+  fullname: string;
   dateOfBirth: string;
   address: string;
   userType: string;
@@ -35,12 +35,12 @@ export interface RegisterRequest {
 }
 
 export interface UpdateUserRequest {
-  username: string;
-  email: string;
-  fullName: string;
-  dateOfBirth: string;
-  address: string;
-  userPicture: string;
+  username?: string;
+  email?: string;
+  fullname?: string;
+  dateOfBirth?: string;
+  address?: string;
+  userPicture?: string;
 }
 
 export interface UserStateResponse {

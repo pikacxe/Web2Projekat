@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import {
   UpdateUserRequest,
   UserPasswordChangeRequest,
@@ -14,50 +14,32 @@ const client = axios.create({
 
 // GET /users/
 const getAllUsers = async (token: string): Promise<Array<UserInfo>> => {
-  try {
-    const headers = { Authorization: `Bearer ${token}` };
-    const res = await client.get("", { headers });
-    if (res.status === 200) {
-      return res.data as Array<UserInfo>;
-    } else {
-      return [];
-    }
-  } catch (err) {
-    console.log(err);
+  const headers = { Authorization: `Bearer ${token}` };
+  const res = await client.get("", { headers });
+  if (res.status === 200) {
+    return res.data as Array<UserInfo>;
+  } else {
     return [];
   }
 };
 
 // GET /user/:id
-const getUserById = async (
-  token: string,
-  id: string
-): Promise<UserInfo | null> => {
-  try {
-    const headers = { Authorization: `Bearer ${token}` };
-    const res = await client.get(id, { headers });
-    if (res.status === 200) {
-      return res.data as UserInfo;
-    }
-    return null;
-  } catch (err) {
-    console.log(err);
-    return null;
+const getUserById = async (token: string, id: string): Promise<UserInfo> => {
+  const headers = { Authorization: `Bearer ${token}` };
+  const res = await client.get(id, { headers });
+  if (res.status === 200) {
+    return res.data as UserInfo;
   }
+  throw new AxiosError(res.statusText, "500");
 };
 
 // GET /users/unverified
 const getUnverifiedUsers = async (token: string): Promise<Array<UserInfo>> => {
-  try {
-    const headers = { Authorization: `Bearer ${token}` };
-    const res = await client.get("unverified", { headers });
-    if (res.status === 200) {
-      return res.data as Array<UserInfo>;
-    } else {
-      return [];
-    }
-  } catch (err) {
-    console.log(err);
+  const headers = { Authorization: `Bearer ${token}` };
+  const res = await client.get("unverified", { headers });
+  if (res.status === 200) {
+    return res.data as Array<UserInfo>;
+  } else {
     return [];
   }
 };
@@ -66,35 +48,24 @@ const getUnverifiedUsers = async (token: string): Promise<Array<UserInfo>> => {
 const getUserState = async (
   token: string,
   id: string
-): Promise<UserStateResponse | null> => {
-  try {
-    const headers = { Authorization: `Bearer ${token}` };
-    const res = await client.get(`${id}/state`, { headers });
-    if (res.status === 200) {
-      return res.data as UserStateResponse;
-    } else {
-      return null;
-    }
-  } catch (err) {
-    console.log(err);
-    return null;
+): Promise<UserStateResponse> => {
+  const headers = { Authorization: `Bearer ${token}` };
+  const res = await client.get(`${id}/state`, { headers });
+  if (res.status === 200) {
+    return res.data as UserStateResponse;
   }
+  throw new AxiosError(res.statusText, "500");
 };
 
-// PUT /users/:id/update
+// PATCH /users/:id/update
 const updateUser = async (
   token: string,
   id: string,
   payload: UpdateUserRequest
 ): Promise<boolean> => {
-  try {
-    const headers = { Authorization: `Bearer ${token}` };
-    const res = await client.put(`${id}/update`, payload, { headers });
-    return res.status === 204;
-  } catch (err) {
-    console.log(err);
-    return false;
-  }
+  const headers = { Authorization: `Bearer ${token}` };
+  const res = await client.patch(`${id}/update`, payload, { headers });
+  return res.status === 204;
 };
 
 // PATCH /users/:id/change-password
@@ -103,52 +74,32 @@ const changeUserPassword = async (
   id: string,
   payload: UserPasswordChangeRequest
 ): Promise<boolean> => {
-  try {
-    const headers = { Authorization: `Bearer ${token}` };
-    const res = await client.patch(`${id}/change-password`, payload, {
-      headers,
-    });
-    return res.status === 204;
-  } catch (err) {
-    console.log(err);
-    return false;
-  }
+  const headers = { Authorization: `Bearer ${token}` };
+  const res = await client.patch(`${id}/change-password`, payload, {
+    headers,
+  });
+  return res.status === 204;
 };
 
 // PATCH /users/:id/verify
 const verifyDriver = async (token: string, id: string): Promise<boolean> => {
-  try {
-    const headers = { Authorization: `Bearer ${token}` };
-    const res = await client.patch(`${id}/verify`, {}, { headers });
-    return res.status === 204;
-  } catch (err) {
-    console.log(err);
-    return false;
-  }
+  const headers = { Authorization: `Bearer ${token}` };
+  const res = await client.patch(`${id}/verify`, {}, { headers });
+  return res.status === 204;
 };
 
 // PATCH /users/:id/verify
 const banDriver = async (token: string, id: string): Promise<boolean> => {
-  try {
-    const headers = { Authorization: `Bearer ${token}` };
-    const res = await client.patch(`${id}/ban`, {}, { headers });
-    return res.status === 204;
-  } catch (err) {
-    console.log(err);
-    return false;
-  }
+  const headers = { Authorization: `Bearer ${token}` };
+  const res = await client.patch(`${id}/ban`, {}, { headers });
+  return res.status === 204;
 };
 
 // DELETE /users/:id
 const deleteUser = async (token: string, id: string): Promise<boolean> => {
-  try {
-    const headers = { Authorization: `Bearer ${token}` };
-    const res = await client.delete(id, { headers });
-    return res.status === 204;
-  } catch (err) {
-    console.log(err);
-    return false;
-  }
+  const headers = { Authorization: `Bearer ${token}` };
+  const res = await client.delete(id, { headers });
+  return res.status === 204;
 };
 
 const userService = {

@@ -212,12 +212,12 @@ namespace TaxiUserData
                 if (user.HasValue)
                 {
                     existingUser = user.Value;
-                    existingUser.Username = updateUserDTO.Username;
-                    existingUser.Email = updateUserDTO.Email;
-                    existingUser.Address = updateUserDTO.Address;
-                    existingUser.DateOfBirth = updateUserDTO.DateOfBirth;
-                    existingUser.Fullname = updateUserDTO.Fullname;
-                    existingUser.UserPicture = updateUserDTO.UserPicture;
+                    existingUser.Username = updateUserDTO.Username ?? existingUser.Username;
+                    existingUser.Email = updateUserDTO.Email ?? existingUser.Email;
+                    existingUser.Address = updateUserDTO.Address ?? existingUser.Address;
+                    existingUser.DateOfBirth = updateUserDTO.DateOfBirth ?? existingUser.DateOfBirth;
+                    existingUser.Fullname = updateUserDTO.Fullname ?? existingUser.Fullname;
+                    existingUser.UserPicture = updateUserDTO.UserPicture ?? existingUser.UserPicture;
                     existingUser._UpdatedAt = DateTimeOffset.UtcNow;
                     await users.AddOrUpdateAsync(tx, existingUser.Id, existingUser, (key, value) => existingUser, timeout,cancellationToken);
                     await tx.CommitAsync();

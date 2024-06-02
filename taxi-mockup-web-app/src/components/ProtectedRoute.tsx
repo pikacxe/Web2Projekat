@@ -14,6 +14,10 @@ export const ProtectedRoute = ({
   if (!auth?.user) {
     return <Navigate to="/" />;
   }
+  console.log(role);
+  if (role === ROLE.LoggeIn) {
+    return children;
+  }
   if (auth?.user.userRole !== String(role)) {
     return <AccessDenied />;
   }

@@ -213,7 +213,7 @@ namespace TaxiWebAPI.Controllers
         }
 
         // PUT /users/:id/update
-        [HttpPut]
+        [HttpPatch]
         [Route("{id}/update")]
         [Authorize]
         public async Task<ActionResult> UpdateUser(Guid id, UpdateUserRequest updateUserDTO)

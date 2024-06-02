@@ -1,0 +1,8 @@
+.userForm{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+    width: 40%;
+    padding: 1rem;
+}

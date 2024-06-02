@@ -1,3 +1,7 @@
+import { useParams } from "react-router-dom";
+import { UserForm } from "../../components/User/UserForm";
+
 export const UpdateProfileView = () => {
-    return <h1>Hello from update profile view</h1>
-}
+  const { userId } = useParams();
+  return <UserForm userId={userId} />;
+};

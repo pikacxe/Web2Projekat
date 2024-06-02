@@ -10,7 +10,6 @@ namespace TaxiWebAPI.Controllers
 {
     [Route("cdn/images")]
     [ApiController]
-    [Authorize]
     public class ImageController : ControllerBase
     {
         private readonly ServiceProxyFactory _proxyFactory;
@@ -23,7 +22,6 @@ namespace TaxiWebAPI.Controllers
         }
 
         [HttpPost("upload")]
-        [AllowAnonymous]
         public async Task<IActionResult> UploadImage([FromForm] IFormFile file)
         {
             if (file == null || file.Length == 0)
