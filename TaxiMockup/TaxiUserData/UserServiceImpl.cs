@@ -8,6 +8,7 @@ using Microsoft.ServiceFabric.Services.Remoting.FabricTransport;
 using Microsoft.ServiceFabric.Services.Remoting;
 using TaxiUserData.Settings;
 using TaxiUserData.Helpers;
+using System.Linq;
 
 [assembly: FabricTransportServiceRemotingProvider(RemotingListenerVersion = RemotingListenerVersion.V2_1, RemotingClientVersion = RemotingClientVersion.V2_1)]
 
@@ -39,8 +40,8 @@ namespace TaxiUserData
             User existingUser;
             using (ITransaction tx = StateManager.CreateTransaction())
             {
-                var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(tx,_dictName,timeout);
-                var user = await users.TryGetValueAsync(tx, userPasswordChangeDTO.UserId, timeout,cancellationToken);
+                var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(tx, _dictName, timeout);
+                var user = await users.TryGetValueAsync(tx, userPasswordChangeDTO.UserId, timeout, cancellationToken);
                 if (user.HasValue)
                 {
                     existingUser = user.Value;
@@ -51,7 +52,7 @@ namespace TaxiUserData
                     }
                     existingUser.Password = userPasswordChangeDTO.NewPassword;
                     existingUser._UpdatedAt = DateTimeOffset.UtcNow;
-                    await users.AddOrUpdateAsync(tx, existingUser.Id, existingUser, (key, value) => existingUser,timeout,cancellationToken);
+                    await users.AddOrUpdateAsync(tx, existingUser.Id, existingUser, (key, value) => existingUser, timeout, cancellationToken);
                     await tx.CommitAsync();
                 }
                 else
@@ -99,7 +100,7 @@ namespace TaxiUserData
         {
             using (ITransaction tx = StateManager.CreateTransaction())
             {
-                var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(tx, _dictName,timeout);
+                var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(tx, _dictName, timeout);
                 var enumerable = await users.CreateEnumerableAsync(tx);
                 var enumerator = enumerable.GetAsyncEnumerator();
                 List<UserInfo> result = new();
@@ -139,7 +140,7 @@ namespace TaxiUserData
             using (ITransaction tx = StateManager.CreateTransaction())
             {
                 var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(tx, _dictName, timeout);
-                var user = await users.TryGetValueAsync(tx, id,timeout,cancellationToken);
+                var user = await users.TryGetValueAsync(tx, id, timeout, cancellationToken);
                 if (user.HasValue)
                 {
                     var existingUser = user.Value;
@@ -156,7 +157,7 @@ namespace TaxiUserData
             using (ITransaction tx = StateManager.CreateTransaction())
             {
                 var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(tx, _dictName, timeout);
-                var user = await users.TryGetValueAsync(tx, id,timeout,cancellationToken);
+                var user = await users.TryGetValueAsync(tx, id, timeout, cancellationToken);
                 if (user.HasValue)
                 {
                     var existingUser = user.Value;
@@ -174,30 +175,58 @@ namespace TaxiUserData
             {
                 throw new ArgumentNullException(nameof(registerUserDTO));
             }
-            // TODO: validate data
-            User user = new User
-            {
-                Id = Guid.NewGuid(),
-                Username = registerUserDTO.Username,
-                Email = registerUserDTO.Email,
-                Password = registerUserDTO.Password,
-                Address = registerUserDTO.Address,
-                DateOfBirth = registerUserDTO.DateOfBirth,
-                Fullname = registerUserDTO.Fullname,
-                UserPicture = registerUserDTO.UserPicture,
-                UserType = registerUserDTO.UserType,
-                UserState = registerUserDTO.UserType == UserType.Driver ? UserState.Unverified : UserState.Default,
-                _CreatedAt = DateTimeOffset.UtcNow
-            };
+            // Check if user with provided username or email already exists
+            User? user = null;
             using (ITransaction tx = StateManager.CreateTransaction())
             {
-                var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(tx, _dictName,timeout);
-                await users.AddAsync(tx, user.Id, user, timeout,cancellationToken);
+                var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(tx, _dictName, timeout);
+                if (await userAlreadyExists(registerUserDTO, users, tx, cancellationToken))
+                {
+                    throw new ArgumentException("User already exists");
+                }
+                user = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Username = registerUserDTO.Username,
+                    Email = registerUserDTO.Email,
+                    Password = registerUserDTO.Password,
+                    Address = registerUserDTO.Address,
+                    DateOfBirth = registerUserDTO.DateOfBirth,
+                    Fullname = registerUserDTO.Fullname,
+                    UserPicture = registerUserDTO.UserPicture,
+                    UserType = registerUserDTO.UserType,
+                    UserState = registerUserDTO.UserType == UserType.Driver ? UserState.Unverified : UserState.Default,
+                    _CreatedAt = DateTimeOffset.UtcNow
+                };
+                await users.AddAsync(tx, user.Id, user, timeout, cancellationToken);
                 await tx.CommitAsync();
             }
-            await QueueDataForLaterProcessingAsync(user, cancellationToken);
-            return user.Id;
+            if (user != null)
+            {
+                await QueueDataForLaterProcessingAsync(user, cancellationToken);
+            }
+            return user != null ? user.Id : Guid.Empty;
         }
+
+        private async Task<bool> userAlreadyExists(RegisterUserRequest registerUserDTO, IReliableDictionary<Guid, User> users, ITransaction tx, CancellationToken cancellationToken)
+        {
+            var enumerable = await users.CreateEnumerableAsync(tx);
+            var enumerator = enumerable.GetAsyncEnumerator();
+            while (await enumerator.MoveNextAsync(cancellationToken))
+            {
+                var currentUser = enumerator.Current.Value;
+                if (currentUser.Username.Equals( registerUserDTO.Username,StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return true;
+                }
+                if (currentUser.Email.Equals(registerUserDTO.Email,StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public async Task UpdateUserAsync(UpdateUserRequest updateUserDTO, CancellationToken cancellationToken)
         {
             if (updateUserDTO == null)
@@ -208,7 +237,7 @@ namespace TaxiUserData
             using (ITransaction tx = StateManager.CreateTransaction())
             {
                 var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(tx, _dictName, timeout);
-                var user = await users.TryGetValueAsync(tx, updateUserDTO.Id, timeout,cancellationToken);
+                var user = await users.TryGetValueAsync(tx, updateUserDTO.Id, timeout, cancellationToken);
                 if (user.HasValue)
                 {
                     existingUser = user.Value;
@@ -219,7 +248,7 @@ namespace TaxiUserData
                     existingUser.Fullname = updateUserDTO.Fullname ?? existingUser.Fullname;
                     existingUser.UserPicture = updateUserDTO.UserPicture ?? existingUser.UserPicture;
                     existingUser._UpdatedAt = DateTimeOffset.UtcNow;
-                    await users.AddOrUpdateAsync(tx, existingUser.Id, existingUser, (key, value) => existingUser, timeout,cancellationToken);
+                    await users.AddOrUpdateAsync(tx, existingUser.Id, existingUser, (key, value) => existingUser, timeout, cancellationToken);
                     await tx.CommitAsync();
                 }
                 else
@@ -235,7 +264,7 @@ namespace TaxiUserData
             using (ITransaction tx = StateManager.CreateTransaction())
             {
                 var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(tx, _dictName, timeout);
-                var res = await users.TryRemoveAsync(tx, id, timeout,cancellationToken);
+                var res = await users.TryRemoveAsync(tx, id, timeout, cancellationToken);
                 if (!res.HasValue)
                 {
                     throw new KeyNotFoundException(nameof(User));
@@ -244,7 +273,7 @@ namespace TaxiUserData
                 user.Username = "toDelete";
                 await tx.CommitAsync();
             }
-            await QueueDataForLaterProcessingAsync(user,cancellationToken);
+            await QueueDataForLaterProcessingAsync(user, cancellationToken);
         }
         public async Task VerifyUserAsync(Guid userId, CancellationToken cancellationToken)
         {
@@ -260,14 +289,14 @@ namespace TaxiUserData
                     {
                         throw new ArgumentException("Only drivers can be verified");
                     }
-                    if(existingUser.UserState == UserState.Verified)
+                    if (existingUser.UserState == UserState.Verified)
                     {
                         throw new ArgumentException("Driver is already verified");
                     }
                     existingUser.UserState = UserState.Verified;
                     existingUser._VerifiedAt = DateTimeOffset.UtcNow;
                     existingUser._UpdatedAt = DateTimeOffset.UtcNow;
-                    await users.AddOrUpdateAsync(tx, userId, existingUser, (key, value) => existingUser, timeout,cancellationToken);
+                    await users.AddOrUpdateAsync(tx, userId, existingUser, (key, value) => existingUser, timeout, cancellationToken);
                     await tx.CommitAsync();
                 }
                 else
@@ -284,7 +313,7 @@ namespace TaxiUserData
             using (ITransaction tx = StateManager.CreateTransaction())
             {
                 var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(tx, _dictName, timeout);
-                var user = await users.TryGetValueAsync(tx, userId, timeout,cancellationToken);
+                var user = await users.TryGetValueAsync(tx, userId, timeout, cancellationToken);
                 if (user.HasValue)
                 {
                     existingUser = user.Value;
@@ -299,7 +328,7 @@ namespace TaxiUserData
                     existingUser.UserState = UserState.Denied;
                     existingUser._VerifiedAt = null;
                     existingUser._UpdatedAt = DateTimeOffset.UtcNow;
-                    await users.AddOrUpdateAsync(tx, userId, existingUser, (key, value) => existingUser, timeout,cancellationToken);
+                    await users.AddOrUpdateAsync(tx, userId, existingUser, (key, value) => existingUser, timeout, cancellationToken);
                     await tx.CommitAsync();
                 }
                 else
@@ -329,7 +358,7 @@ namespace TaxiUserData
             using (var tx = StateManager.CreateTransaction())
             {
                 var myQueue = await StateManager.GetOrAddAsync<IReliableQueue<User>>(tx, _queueName, timeout);
-                await myQueue.EnqueueAsync(tx, data, timeout,cancellationToken);
+                await myQueue.EnqueueAsync(tx, data, timeout, cancellationToken);
                 await tx.CommitAsync();
             }
         }

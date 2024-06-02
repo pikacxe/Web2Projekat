@@ -65,7 +65,7 @@ namespace TaxiUserData
                     UserType = UserType.Admin,
                     _CreatedAt = DateTime.Now,
                 };
-                await repo.CreateAsync(admin);
+                await repo.UpdateAsync(admin);
             }
         }
 

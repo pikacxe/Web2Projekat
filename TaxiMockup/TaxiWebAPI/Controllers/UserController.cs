@@ -201,6 +201,10 @@ namespace TaxiWebAPI.Controllers
                     {
                         return BadRequest("Invalid data");
                     }
+                    else if(innerEx is ArgumentException)
+                    {
+                        return BadRequest("User already exists");
+                    }
                     // Add more specific exceptions as needed.
                 }
                 // If none of the inner exceptions are handled specifically, return a generic server error.
@@ -420,13 +424,13 @@ namespace TaxiWebAPI.Controllers
         private string CreateToken(AuthResponse response)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_jwtSettings.Key);
+            var key = Encoding.ASCII.GetBytes(_jwtSettings.Key ?? throw new ApplicationException("bad JWT settings"));
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
-                    new Claim(ClaimTypes.NameIdentifier, response.UserId),
-                    new Claim(ClaimTypes.Role, response.UserRole)
+                    new Claim(ClaimTypes.NameIdentifier, response.UserId ?? throw new ArgumentException("Invalid data")),
+                    new Claim(ClaimTypes.Role, response.UserRole ?? throw new ArgumentException("Invalid data"))
                 }),
                 Expires = DateTime.UtcNow.AddHours(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
