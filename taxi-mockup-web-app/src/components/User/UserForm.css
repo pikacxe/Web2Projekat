@@ -4,5 +4,6 @@
     justify-content: center;
     height: 100%;
     width: 40%;
+    min-width: 500px;
     padding: 1rem;
 }

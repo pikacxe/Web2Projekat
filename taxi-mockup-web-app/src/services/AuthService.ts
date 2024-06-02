@@ -15,7 +15,7 @@ const client = axios.create({
 const register = async (payload: RegisterRequest): Promise<boolean> => {
   try {
     const res = await client.post("register", payload);
-    return res.status === 204;
+    return res.status === 201;
   } catch (err) {
     console.log(err);
     return false;

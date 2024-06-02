@@ -1,4 +1,5 @@
-export const RegisterView = () => {
-    return <h1>Hello from register view</h1>
-}
+import { RegisterForm } from "../components/RegisterForm";
 
+export const RegisterView = () => {
+  return <RegisterForm />;
+};
