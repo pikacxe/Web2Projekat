@@ -423,3 +423,6 @@ yarn-debug.log*
 yarn-error.log*
 
 package-lock.json
+
+# ignore user profile images
+TaxiMockup/TaxiCDN/wwwroot/images/*
