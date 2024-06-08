@@ -13,3 +13,4 @@
 - [x] add global error messages (snackbar)
   - [ ] improve error message display (extract error message from api response)
 - [x] add delete confirmation dialog
+- [ ] add tbx validation with error messages

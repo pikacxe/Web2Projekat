@@ -42,9 +42,9 @@ interface RideDataRow {
 export const AvailableRidesList: React.FC<{
   rides: Array<AvailableRideRespone>;
 }> = ({ rides }) => {
-  const [rows, setRows] = useState<RideDataRow[]>([]);
   const { token, userId } = useAuth().user as AuthResponse;
   const alert = useAlert();
+  const [rows, setRows] = useState<RideDataRow[]>([]);
   const [rideToAccept, setRideToAccept] = useState<string>();
   const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [acceptRideRequest, setAcceptRideRequest] = useState<AcceptRideRequest>(
