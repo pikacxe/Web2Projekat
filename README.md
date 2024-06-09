@@ -85,13 +85,13 @@ Mock uber like app with microservice architecture where users can request a ride
 
 <details>
 
-- [ ] /users
+- [X] /users
   - [x] /
   - [x] /:id
   - [x] /unverified
   - [x] /login
   - [x] /register
-    - [ ] /oauth
+    - [x] /oauth
   - [x] /:id/state
   - [x] /update
   - [x] /delete
@@ -114,7 +114,7 @@ Mock uber like app with microservice architecture where users can request a ride
 
 - [x] add JWT auth
   - [x] add RBAC
-- [ ] implement OAuth signin 
+- [x] implement OAuth signin 
 - [x] implement CDN service
     - [x] update cdn service to regular stateless from web stateless
 - [x] implement Ride data service
@@ -128,7 +128,7 @@ Mock uber like app with microservice architecture where users can request a ride
 - [x] add partition key resolver for stateful service
 - [x] implement database backup for stateful service's state
 - [x] move service proxy creation to Common
-    - [ ] add service partition resolver 
+    - [x] add service partition resolver 
 - [x] add mailing upon user verification
 - [x] update database connection to be more secure
 - [x] add password hashing

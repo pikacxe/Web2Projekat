@@ -14,6 +14,14 @@ namespace Contracts
         /// <returns></returns>
         Task<UserInfo> GetAsync(Guid id, CancellationToken cancellationToken = default);
         /// <summary>
+        /// Gets user by email
+        /// </summary>
+        /// <param name="email"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task<UserInfo> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Gets all users in system
         /// </summary>
         /// <returns></returns>

@@ -36,10 +36,8 @@ namespace Common.DTO
         [Required(AllowEmptyStrings = false, ErrorMessage = "Picture is required!")]
         public string? UserPicture { get; set; }
         [DataMember]
-        [Required(ErrorMessage = "Date of birth is required!")]
         public DateTimeOffset? DateOfBirth { get; set; }
         [DataMember]
-        [Required(ErrorMessage = "Address is required!")]
         public string? Address { get; set; }
         [DataMember]
         [Range(0,1, ErrorMessage ="User type must be 'User' or 'Driver'")]
@@ -125,6 +123,13 @@ namespace Common.DTO
         public string? Token { get; set; }
         [DataMember]
         public string? ProfileImage { get; set; }
+    }
+
+    [DataContract]
+    public class GoogleSignin
+    {
+        [DataMember]
+        public string Token { get; set; }
     }
 
 }

@@ -2,6 +2,7 @@
 using Common.DTO;
 using Common.Settings;
 using Contracts;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.TagHelpers;
@@ -14,6 +15,7 @@ using System.Security.Claims;
 using System.Text;
 using TaxiWebAPI.Hubs;
 using TaxiWebAPI.Settings;
+using static Google.Apis.Requests.BatchRequest;
 
 namespace TaxiWebAPI.Controllers
 {
@@ -27,7 +29,7 @@ namespace TaxiWebAPI.Controllers
         private readonly ServiceProxyFactory _serviceProxyFactory;
         private readonly IHubContext<RideHub, IRideChat> _hubContext;
 
-        public UserController(IHubContext<RideHub, IRideChat> hubContext,ServiceProxyFactory factory,UserDataServiceSettings serviceSettings , JwtTokenSettings jwtSettings)
+        public UserController(IHubContext<RideHub, IRideChat> hubContext, ServiceProxyFactory factory, UserDataServiceSettings serviceSettings, JwtTokenSettings jwtSettings)
         {
             _hubContext = hubContext;
             _jwtSettings = jwtSettings;
@@ -189,7 +191,7 @@ namespace TaxiWebAPI.Controllers
             {
                 var _proxy = CreateProxy(Guid.NewGuid());
                 var id = await _proxy.RegisterNewUserAsync(registerUserDTO);
-                return StatusCode(201,new { id = id });
+                return StatusCode(201, new { id = id });
             }
             catch (AggregateException ex)
             {
@@ -203,7 +205,7 @@ namespace TaxiWebAPI.Controllers
                     {
                         return BadRequest("Invalid data");
                     }
-                    else if(innerEx is ArgumentException)
+                    else if (innerEx is ArgumentException)
                     {
                         return BadRequest("User already exists");
                     }
@@ -218,13 +220,89 @@ namespace TaxiWebAPI.Controllers
             }
         }
 
+        [HttpPost]
+        [AllowAnonymous]
+        [Route("login/google")]
+        public async Task<ActionResult> ExternalLogin([FromBody]GoogleSignin googleSignin)
+        {
+            try
+            {
+                var payload = await GoogleJsonWebSignature.ValidateAsync(googleSignin.Token);
+                var user = await GetOrCreateUser(payload);
+                user.Token = CreateToken(user);
+                return Ok(user);
+            }
+            catch (AggregateException ex)
+            {
+                foreach (var innerEx in ex.InnerExceptions)
+                {
+                    if (innerEx is KeyNotFoundException)
+                    {
+                        return NotFound("The requested user was not found.");
+                    }
+                    else if (innerEx is ArgumentNullException)
+                    {
+                        return BadRequest("Invalid data");
+                    }
+                    else if (innerEx is ArgumentException)
+                    {
+                        return BadRequest("User already exists");
+                    }
+                    // Add more specific exceptions as needed.
+                }
+                // If none of the inner exceptions are handled specifically, return a generic server error.
+                return StatusCode(500, "An error occurred while processing your request.");
+            }
+            catch(InvalidJwtException)
+            {
+                return BadRequest("Invalid google token");
+            }
+            catch
+            {
+                return StatusCode(500, "An error occurred while processing your request.");
+            }
+        }
+
+        private async Task<AuthResponse> GetOrCreateUser(GoogleJsonWebSignature.Payload payload)
+        {
+            var _proxy = CreateProxy(Guid.NewGuid());
+            var user = await _proxy.GetByEmailAsync(payload.Email);
+            if(user != null)
+            {
+                return new AuthResponse
+                {
+                    UserId = user.Id.ToString(),
+                    UserRole = user.UserType.ToString(),
+                    ProfileImage = user.UserPicture,
+                    Username = user.Username
+                };
+            }
+            var newUser = new RegisterUserRequest
+            {
+                Email = payload.Email,
+                Fullname = payload.GivenName + " " + payload.FamilyName,
+                UserPicture = payload.Picture,
+                Username = payload.Email,
+                Password = Guid.NewGuid().ToString()
+            };
+            var id = await _proxy.RegisterNewUserAsync(newUser);
+            return new AuthResponse
+            {
+                UserId = id.ToString(),
+                UserRole = "User",
+                ProfileImage = payload.Picture,
+                Username = payload.Email,
+            };
+
+        }
+
         // PUT /users/:id/update
         [HttpPatch]
         [Route("{id}/update")]
         [Authorize]
         public async Task<ActionResult> UpdateUser(Guid id, UpdateUserRequest updateUserDTO)
         {
-            if(id != updateUserDTO.Id)
+            if (id != updateUserDTO.Id)
             {
                 return Unauthorized("User ids does not match");
             }
@@ -273,11 +351,11 @@ namespace TaxiWebAPI.Controllers
         public async Task<ActionResult> ChangeUserPassword(Guid id, UserPasswordChangeRequest request)
         {
             var requestUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if(requestUserId == null || requestUserId != id.ToString())
+            if (requestUserId == null || requestUserId != id.ToString())
             {
                 return BadRequest("You can only change own password");
             }
-            if(requestUserId != id.ToString())
+            if (requestUserId != id.ToString())
             {
                 return BadRequest("You can only change own password");
             }
@@ -373,7 +451,7 @@ namespace TaxiWebAPI.Controllers
                     {
                         return BadRequest("Invalid data");
                     }
-                    else if(innerEx is ArgumentException)
+                    else if (innerEx is ArgumentException)
                     {
                         return BadRequest(innerEx.Message);
                     }

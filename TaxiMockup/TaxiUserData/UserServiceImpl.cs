@@ -153,6 +153,24 @@ namespace TaxiUserData
                 }
             }
         }
+        public async Task<UserInfo> GetByEmailAsync(string email, CancellationToken cancellationToken)
+        {
+            using(ITransaction tx = StateManager.CreateTransaction())
+            {
+                var users = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, User>>(tx, _dictName, timeout);
+                var enumerable = await users.CreateEnumerableAsync(tx);
+                var enumerator = enumerable.GetAsyncEnumerator();
+                while (await enumerator.MoveNextAsync(cancellationToken))
+                {
+                    var currentUser = enumerator.Current.Value;
+                    if (currentUser.Email == email)
+                    {
+                        return currentUser.AsInfoDTO();
+                    }
+                }
+            }
+            return null;
+        }
         public async Task<UserStateResponse> GetUserStateAsync(Guid id, CancellationToken cancellationToken)
         {
             using (ITransaction tx = StateManager.CreateTransaction())
@@ -305,7 +323,7 @@ namespace TaxiUserData
                     throw new KeyNotFoundException(nameof(User));
                 }
             }
-            //await _mailClient.SendVerificationMailAsync(existingUser.Email, cancellationToken);
+            await _mailClient.SendVerificationMailAsync(existingUser.Email, cancellationToken);
             await QueueDataForLaterProcessingAsync(existingUser, CancellationToken.None);
         }
         public async Task BanUserAsync(Guid userId, CancellationToken cancellationToken)

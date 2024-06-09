@@ -22,22 +22,31 @@ const register = async (payload: RegisterRequest): Promise<boolean> => {
   }
 };
 
+// POST users/login/google
+const loginExternal = async (payload: string): Promise<AuthResponse | null> => {
+  try {
+    const res = await client.post("login/google", { token: payload });
+    if (res.status === 200) {
+      return res.data as AuthResponse;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+  return null;
+};
+
 // POST users/login
 const login = async (payload: LoginRequest): Promise<AuthResponse | null> => {
   try {
     const res = await client.post("login", payload);
     if (res.status === 200) {
       return res.data as AuthResponse;
-    } else {
-      // handle other status codes if necessary
-      console.log(`Unexpected status code: ${res.status}`);
-      return null;
     }
   } catch (err) {
     console.log(err);
-    return null;
   }
+  return null;
 };
 
-const authService = { register, login };
+const authService = { register, login, loginExternal };
 export default authService;
