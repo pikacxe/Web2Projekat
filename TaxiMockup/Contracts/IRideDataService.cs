@@ -22,7 +22,7 @@ namespace Contracts
         /// <exception cref="ArgumentException"/>
         /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task<Ride> AcceptRideAsync(AcceptRideRequest acceptRideDTO, CancellationToken cancellationToken = default);
+        Task<RideInfo> AcceptRideAsync(AcceptRideRequest acceptRideDTO, CancellationToken cancellationToken = default);
         /// <summary>
         /// Finishes ride in progress
         /// </summary>
@@ -36,7 +36,7 @@ namespace Contracts
         /// Gets all rides
         /// </summary>
         /// <returns></returns>
-        Task<IEnumerable<Ride>> GetAllRidesAsync(CancellationToken cancellationToken = default);
+        Task<IEnumerable<RideInfo>> GetAllRidesAsync(CancellationToken cancellationToken = default);
         /// <summary>
         /// Gets all rides
         /// </summary>

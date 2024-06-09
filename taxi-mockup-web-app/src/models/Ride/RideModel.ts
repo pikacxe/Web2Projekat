@@ -1,3 +1,19 @@
+export interface RideInfo {
+  id: string;
+  passengerId: string;
+  driverId: string;
+  startDestination: string;
+  endDestination: string;
+  price: number;
+  driverETA: number;
+  rideDuraiton: number;
+  rideState: string;
+  rating: number;
+  createdAt: string;
+  updatedAt: string;
+  finishedAt: string;
+}
+
 export interface RideStateRequest {
   id: string;
   rideState: string;

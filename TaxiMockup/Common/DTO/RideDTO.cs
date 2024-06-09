@@ -12,6 +12,38 @@ namespace Common.DTO
         public RideState RideState { get; set; }
     }
     [DataContract]
+    public class RideInfo
+    {
+        [DataMember]
+        public Guid Id { get; set; }
+        [DataMember]
+        public Guid PassengerId { get; set; }
+        [DataMember]
+        public Guid DriverId { get; set; }
+        [DataMember]
+        public string? StartDestination { get; set; }
+        [DataMember]
+        public string? EndDestination { get; set; }
+        [DataMember]
+        public double Price { get; set; }
+        [DataMember]
+        public double RideDuration { get; set; }
+        [DataMember]
+        public double DriverETA { get; set; }
+        [DataMember]
+        public RideState RideState { get; set; }
+        [DataMember]
+        public int Rating { get; set; }
+        [DataMember]
+        public string? CreatedAt { get; set; }
+        [DataMember]
+        public string? UpdatedAt { get; set; }
+        [DataMember]
+        public string? FinishedAt { get; set; }
+
+    }
+
+    [DataContract]
     public class ProposedRideRequest
     {
         [DataMember]

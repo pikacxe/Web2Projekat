@@ -232,7 +232,7 @@ export const RegisterForm = () => {
           value={
             currentUser.dateOfBirth
               ? new Date(currentUser.dateOfBirth).toISOString().split("T")[0]
-              : undefined
+              : new Date(1800, 1, 1)
           }
           onChange={handleChange}
           required

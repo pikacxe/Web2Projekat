@@ -35,17 +35,17 @@ namespace TaxiRideData
         }
 
         #region Ride service methods
-        public async Task<IEnumerable<Ride>> GetAllRidesAsync(CancellationToken cancellationToken)
+        public async Task<IEnumerable<RideInfo>> GetAllRidesAsync(CancellationToken cancellationToken)
         {
             using (ITransaction tx = StateManager.CreateTransaction())
             {
                 var rides = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, Ride>>(tx, _dictName, timeout);
-                List<Ride> list = new();
+                List<RideInfo> list = new();
                 var enumerable = await rides.CreateEnumerableAsync(tx);
                 var enumerator = enumerable.GetAsyncEnumerator();
                 while (await enumerator.MoveNextAsync(cancellationToken))
                 {
-                    list.Add(enumerator.Current.Value);
+                    list.Add(enumerator.Current.Value.AsRideInfoDTO());
                 }
                 enumerator.Dispose();
                 return list;
@@ -145,7 +145,7 @@ namespace TaxiRideData
             await QueueDataForLaterProcessingAsync(newRide, cancellationToken);
             return newRide.Id;
         }
-        public async Task<Ride> AcceptRideAsync(AcceptRideRequest acceptRideDTO, CancellationToken cancellationToken)
+        public async Task<RideInfo> AcceptRideAsync(AcceptRideRequest acceptRideDTO, CancellationToken cancellationToken)
         {
             if (acceptRideDTO == null)
             {
@@ -177,7 +177,7 @@ namespace TaxiRideData
                 }
             }
             await QueueDataForLaterProcessingAsync(acceptedRide, cancellationToken);
-            return acceptedRide;
+            return acceptedRide.AsRideInfoDTO();
         }
         public async Task FinishRideAsync(FinishedRideRequest finishedRideDTO, CancellationToken cancellationToken)
         {

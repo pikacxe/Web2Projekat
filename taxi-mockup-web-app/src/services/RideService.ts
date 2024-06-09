@@ -5,6 +5,7 @@ import {
   CompletedRideResponse,
   FinishRideRequest,
   ProposedRideRequest,
+  RideInfo,
 } from "../models/Ride/RideModel";
 
 const apiUrl = process.env.REACT_APP_API_URL;
@@ -14,14 +15,12 @@ const client = axios.create({
 });
 
 // GET /rides/
-const getAllRides = async (
-  token: string
-): Promise<Array<CompletedRideResponse>> => {
+const getAllRides = async (token: string): Promise<Array<RideInfo>> => {
   try {
     const headers = { Authorization: `Bearer ${token}` };
     const res = await client.get("", { headers });
     if (res.status === 200) {
-      return res.data as Array<CompletedRideResponse>;
+      return res.data as Array<RideInfo>;
     } else {
       return [];
     }

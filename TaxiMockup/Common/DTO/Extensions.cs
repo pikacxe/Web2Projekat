@@ -16,12 +16,29 @@ namespace Common.DTO
             Rating = ride.Rating
         };
 
+        public static RideInfo AsRideInfoDTO(this Ride ride) => new RideInfo
+        {
+            Id = ride.Id,
+            PassengerId = ride.PassengerId,
+            DriverId = ride.DriverId,
+            StartDestination = ride.StartDestination,
+            EndDestination = ride.EndDestination,
+            Price = ride.Price,
+            RideDuration = ride.RideDuration,
+            DriverETA = ride.DriverETA,
+            RideState = ride.RideState,
+            Rating = ride.Rating,
+            CreatedAt = ride._CreatedAt?.Date.ToShortDateString() ,
+            UpdatedAt = ride._UpdatedAt?.Date.ToShortDateString(),
+            FinishedAt = ride._FinishedAt?.Date.ToShortDateString()
+        };
+
         public static AvailableRideResponse AsAvailableRideDTO(this Ride ride) => new AvailableRideResponse
         {
             RideId = ride.Id,
             StartDestination = ride.StartDestination,
             EndDestination = ride.EndDestination,
-            PassengerName = ride.PassengerName
+            PassengerName = ride.PassengerName ?? "Anonymous"
         };
 
         public static UserInfo AsInfoDTO(this User user) => new UserInfo
