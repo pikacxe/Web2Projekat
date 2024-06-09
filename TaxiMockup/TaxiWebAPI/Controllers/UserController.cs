@@ -5,12 +5,14 @@ using Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.TagHelpers;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.ServiceFabric.Services.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using TaxiWebAPI.Hubs;
 using TaxiWebAPI.Settings;
 
 namespace TaxiWebAPI.Controllers
@@ -19,15 +21,15 @@ namespace TaxiWebAPI.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly ILogger<UserController> _logger;
         private readonly UserDataServiceSettings _userServiceSettings;
         private readonly JwtTokenSettings _jwtSettings;
         private readonly Uri _serviceUri;
         private readonly ServiceProxyFactory _serviceProxyFactory;
+        private readonly IHubContext<RideHub, IRideChat> _hubContext;
 
-        public UserController(ILogger<UserController> logger,ServiceProxyFactory factory,UserDataServiceSettings serviceSettings , JwtTokenSettings jwtSettings)
+        public UserController(IHubContext<RideHub, IRideChat> hubContext,ServiceProxyFactory factory,UserDataServiceSettings serviceSettings , JwtTokenSettings jwtSettings)
         {
-            _logger = logger;
+            _hubContext = hubContext;
             _jwtSettings = jwtSettings;
             _userServiceSettings = serviceSettings;
             _serviceProxyFactory = factory;

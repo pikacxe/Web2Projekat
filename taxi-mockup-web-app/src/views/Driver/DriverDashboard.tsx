@@ -12,6 +12,9 @@ import { useAlert } from "../../hooks/useAlert";
 import rideService from "../../services/RideService";
 import { RideInfo } from "../../components/Ride/RideInfo";
 import { AvailableRidesList } from "../../components/Ride/AvailableRidesList";
+import { useSignalR } from "../../hooks/useSignalR";
+import { HubConnectionState } from "@microsoft/signalr";
+import { useNavigate } from "react-router-dom";
 
 export const DriverDashboard = () => {
   const [availableRides, setAvailableRides] = useState<AvailableRideRespone[]>(
@@ -22,6 +25,8 @@ export const DriverDashboard = () => {
   );
   const { token, userId } = useAuth().user as AuthResponse;
   const alert = useAlert();
+  const navigate = useNavigate();
+  const { connection } = useSignalR();
 
   useEffect(() => {
     rideService
@@ -44,7 +49,30 @@ export const DriverDashboard = () => {
         alert.showAlert(err.message, "error");
         console.log(err);
       });
-  }, [token, userId, alert]);
+  }, [token, alert, userId]);
+
+  if (connection) {
+    if (connection.state !== HubConnectionState.Connected) {
+      connection
+        .start()
+        .then((_) => {
+          connection.invoke("addDriver");
+
+          connection?.on("newRideRequest", (newRide) => {
+            console.log(newRide);
+            if (!availableRides.includes(newRide)) {
+              setAvailableRides((prevState) => [...prevState, newRide]);
+            }
+          });
+          connection?.on("rideAccepted", (data) => {
+            console.log(data);
+            navigate("/ride-in-progress", { state: data });
+          });
+        })
+        .catch((e) => console.log("Connection failed: ", e));
+    }
+  }
+
   return (
     <Box sx={{ height: "96vh", width: "100%" }}>
       <Grid container height="100%" flexGrow={1}>
@@ -52,7 +80,10 @@ export const DriverDashboard = () => {
           <ProfileView />
         </Grid>
         <Grid xs={12} sm={12} md={12} lg={8} xl={9}>
-          <Paper variant="outlined" sx={{ padding: "2rem", height: "50%" }}>
+          <Paper
+            variant="outlined"
+            sx={{ padding: "2rem", height: "50%", minHeight: "350px" }}
+          >
             <Typography variant="h4">Available rides</Typography>
             <Divider />
             {availableRides.length > 0 ? (
@@ -63,7 +94,10 @@ export const DriverDashboard = () => {
               </Typography>
             )}
           </Paper>
-          <Paper variant="outlined" sx={{ padding: "2rem", height: "50%" }}>
+          <Paper
+            variant="outlined"
+            sx={{ padding: "2rem", height: "50%", minHeight: "300px" }}
+          >
             <Typography variant="h4">Completed rides</Typography>
             <Divider />
             {completedRides.length > 0 ? (

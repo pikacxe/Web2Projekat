@@ -11,6 +11,9 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ROLE } from "./models/AuthModel";
 import { AlertProvider } from "./hooks/useAlert";
 import { UpdateProfileView } from "./views/User/UpdateProfile";
+import { SignalRProvider } from "./hooks/useSignalR";
+import { ChangePasswordForm } from "./components/User/ChangePasswordForm";
+import { FullScreenDialog } from "./components/FullScreenDialog";
 
 function App() {
   return (
@@ -18,43 +21,61 @@ function App() {
       <BrowserRouter>
         <AuthProvider>
           <AlertProvider>
-            <Navbar />
-            <Routes>
-              <Route path="/" element={<LoginView />} />
-              <Route path="/register" element={<RegisterView />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute role={ROLE.User}>
-                    <UserDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin-dashboard"
-                element={
-                  <ProtectedRoute role={ROLE.Admin}>
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/driver-dashboard"
-                element={
-                  <ProtectedRoute role={ROLE.Driver}>
-                    <DriverDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/:dashboard/:userId"
-                element={
-                  <ProtectedRoute role={ROLE.LoggeIn}>
-                    <UpdateProfileView />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
+            <SignalRProvider>
+              <Navbar />
+              <Routes>
+                <Route path="/" element={<LoginView />} />
+                <Route path="/register" element={<RegisterView />} />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute role={ROLE.User}>
+                      <UserDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin-dashboard"
+                  element={
+                    <ProtectedRoute role={ROLE.Admin}>
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/driver-dashboard"
+                  element={
+                    <ProtectedRoute role={ROLE.Driver}>
+                      <DriverDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/:dashboard/:userId"
+                  element={
+                    <ProtectedRoute role={ROLE.LoggeIn}>
+                      <UpdateProfileView />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/change-password"
+                  element={
+                    <ProtectedRoute role={ROLE.LoggeIn}>
+                      <ChangePasswordForm />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/ride-in-progress"
+                  element={
+                    <ProtectedRoute role={ROLE.LoggeIn}>
+                      <FullScreenDialog />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </SignalRProvider>
           </AlertProvider>
         </AuthProvider>
       </BrowserRouter>

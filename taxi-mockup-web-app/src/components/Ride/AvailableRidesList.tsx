@@ -32,6 +32,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { AuthResponse } from "../../models/User/UserModel";
 import rideService from "../../services/RideService";
 import NoCrashIcon from "@mui/icons-material/NoCrash";
+import { useSignalR } from "../../hooks/useSignalR";
 
 interface RideDataRow {
   id: string;
@@ -44,6 +45,7 @@ export const AvailableRidesList: React.FC<{
 }> = ({ rides }) => {
   const { token, userId } = useAuth().user as AuthResponse;
   const alert = useAlert();
+  const { connection } = useSignalR();
   const [rows, setRows] = useState<RideDataRow[]>([]);
   const [rideToAccept, setRideToAccept] = useState<string>();
   const [openDialog, setOpenDialog] = useState<boolean>(false);
@@ -52,6 +54,7 @@ export const AvailableRidesList: React.FC<{
       driverId: userId,
       rideId: "",
       driverETA: 0,
+      connectionId: connection?.connectionId ?? "",
     }
   );
   useEffect(() => {
@@ -74,6 +77,7 @@ export const AvailableRidesList: React.FC<{
 
   const acceptRide = () => {
     acceptRideRequest.rideId = rideToAccept as string;
+    acceptRideRequest.connectionId = connection?.connectionId as string;
     rideService
       .acceptPendingRide(token, acceptRideRequest)
       .then((res) => {
@@ -113,6 +117,12 @@ export const AvailableRidesList: React.FC<{
   const columns: GridColDef<RideDataRow[][number]>[] = [
     { field: "id", headerName: "Ride Id", flex: 1.5 },
     {
+      field: "passengerName",
+      headerName: "Passenger name",
+      editable: false,
+      flex: 1,
+    },
+    {
       field: "startDestination",
       headerName: "Start destination",
       editable: false,
@@ -140,10 +150,12 @@ export const AvailableRidesList: React.FC<{
   function handleDriverETA(
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ): void {
-    setAcceptRideRequest((prevState) => ({
-      ...prevState,
-      driverETA: +event.target.value,
-    }));
+    if (+event.target.value > 0) {
+      setAcceptRideRequest((prevState) => ({
+        ...prevState,
+        driverETA: +event.target.value,
+      }));
+    }
   }
 
   return (

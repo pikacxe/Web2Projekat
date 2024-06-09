@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TaxiWebAPI.Settings;
 using Common;
+using TaxiWebAPI.Hubs;
 
 namespace TaxiWebAPI
 {
@@ -70,7 +71,27 @@ namespace TaxiWebAPI
                                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtTokenSettings:Key"] ?? string.Empty)),
                                 ClockSkew = TimeSpan.Zero
                             };
+                            options.Events = new JwtBearerEvents
+                            {
+                                OnMessageReceived = context =>
+                                {
+                                    var accessToken = context.Request.Query["access_token"];
+
+                                    // If the request is for our hub...
+                                    var path = context.HttpContext.Request.Path;
+                                    if (!string.IsNullOrEmpty(accessToken) &&
+                                        (path.StartsWithSegments("/hubs/ride")))
+                                    {
+                                        // Read the token out of the query string
+                                        context.Token = accessToken;
+                                    }
+                                    return Task.CompletedTask;
+                                }
+                            };
                         });
+                        // Register SignalR hub
+                        builder.Services.AddSignalR();
+                        // Register Controllers
                         builder.Services.AddControllers()
                                         .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
                         // Cors settings
@@ -79,9 +100,11 @@ namespace TaxiWebAPI
                         {
                             options.AddPolicy(name: corsSettings.PolicyName, policy =>
                             {
-                                policy.WithOrigins(corsSettings.AllowedHosts)
+                                policy
                                 .AllowAnyMethod()
-                                .AllowAnyHeader();
+                                .AllowAnyHeader()
+                                .SetIsOriginAllowed(origin => true)
+                                .AllowCredentials();
                             });
                         });
                         builder.Services.AddEndpointsApiExplorer();
@@ -128,6 +151,7 @@ namespace TaxiWebAPI
                         app.UseAuthentication();
                         app.UseAuthorization();
                         app.MapControllers();
+                        app.MapHub<RideHub>("/hubs/ride");
                         return app;
                     }))
             };

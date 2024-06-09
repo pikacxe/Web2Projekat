@@ -8,14 +8,25 @@ export interface ProposedRideRequest {
   startDestination: string;
   endDestination: string;
   price: number;
-  estRideDuraiton: number;
+  estRideDuration: number;
   driverETA: number;
+  passengerName: string;
+  connectionId: string;
 }
 
 export interface AvailableRideRespone {
   rideId: string;
+  passengerId: string;
   startDestination: string;
   endDestination: string;
+  passengerName: string;
+}
+
+export interface RideInProgressInfo {
+  rideId: string;
+  passengerId: string;
+  driverETA: number;
+  rideDuration: number;
 }
 
 export interface CompletedRideResponse {
@@ -33,6 +44,7 @@ export interface AcceptRideRequest {
   rideId: string;
   driverId: string;
   driverETA: number;
+  connectionId: string;
 }
 
 export interface FinishRideRequest {

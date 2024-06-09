@@ -5,6 +5,7 @@
         public Guid Id { get; set; }
         public Guid PassengerId { get; set; }
         public Guid DriverId { get; set; }
+        public string? PassengerName { get; set; } = string.Empty;
         public string? StartDestination { get; set; } = string.Empty;
         public string? EndDestination { get; set; } = string.Empty;
         public double Price { get; set; }

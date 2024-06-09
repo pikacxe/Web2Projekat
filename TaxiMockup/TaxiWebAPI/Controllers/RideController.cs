@@ -6,6 +6,8 @@ using Common.Settings;
 using Microsoft.ServiceFabric.Services.Client;
 using Microsoft.ServiceFabric.Services.Communication;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
+using Microsoft.AspNetCore.SignalR;
+using TaxiWebAPI.Hubs;
 
 namespace TaxiWebAPI.Controllers
 {
@@ -13,13 +15,13 @@ namespace TaxiWebAPI.Controllers
     [ApiController]
     public class RideController : ControllerBase
     {
-        private readonly ILogger<RideController> _logger;
         private readonly RideDataServiceSettings _rideServiceSettings;
         private readonly ServiceProxyFactory _proxyFactory;
+        private readonly IHubContext<RideHub, IRideChat> _hubContext;
         private readonly Uri _rideServiceUri;
-        public RideController(ILogger<RideController> logger,ServiceProxyFactory serviceProxyFactory, RideDataServiceSettings rideDataServiceSettings)
+        public RideController(IHubContext<RideHub, IRideChat> hubContext,ServiceProxyFactory serviceProxyFactory, RideDataServiceSettings rideDataServiceSettings)
         {
-            _logger = logger;
+            _hubContext = hubContext;
             _proxyFactory = serviceProxyFactory;
             _rideServiceSettings = rideDataServiceSettings;
             _rideServiceUri = new Uri(_rideServiceSettings.ConnectionString);
@@ -106,6 +108,15 @@ namespace TaxiWebAPI.Controllers
             {
                 var _proxy = CreateProxy();
                 var result = await _proxy.RequestRideAsync(proposedRide);
+                // Broadcast the new ride to all drivers
+                await _hubContext.Clients.Group("drivers").NewRideRequest(new AvailableRideResponse()
+                {
+                    RideId = result,
+                    EndDestination = proposedRide.EndDestination,
+                    PassengerName = proposedRide.PassengerName,
+                    StartDestination = proposedRide.StartDestination
+                });
+                await _hubContext.Groups.AddToGroupAsync(proposedRide.ConnectionId, result.ToString());
                 return StatusCode(201, new { id = result });
             }
             catch (AggregateException ex)
@@ -140,7 +151,16 @@ namespace TaxiWebAPI.Controllers
             try
             {
                 var _proxy = CreateProxy();
-                await _proxy.AcceptRideAsync(acceptedRide);
+                var ride = await _proxy.AcceptRideAsync(acceptedRide);
+                await _hubContext.Groups.AddToGroupAsync(acceptedRide.ConnectionId, acceptedRide.RideId.ToString());
+                var payload = new RideInProgressInfo()
+                {
+                    RideId = ride.Id,
+                    DriverETA = ride.DriverETA,
+                    PassengerId = ride.PassengerId,
+                    RideDuration = ride.RideDuration
+                };
+                await _hubContext.Clients.Group(ride.Id.ToString()).RideAccepted(payload);
                 return NoContent();
             }
             catch (AggregateException ex)

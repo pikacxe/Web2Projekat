@@ -49,7 +49,7 @@ export interface UserStateResponse {
 }
 
 export interface UserPasswordChangeRequest {
-  id: string;
+  userId: string;
   oldPassword: string;
   newPassword: string;
 }

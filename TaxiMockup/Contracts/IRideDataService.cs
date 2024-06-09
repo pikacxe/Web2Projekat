@@ -22,7 +22,7 @@ namespace Contracts
         /// <exception cref="ArgumentException"/>
         /// <exception cref="KeyNotFoundException"/>
         /// <returns></returns>
-        Task AcceptRideAsync(AcceptRideRequest acceptRideDTO, CancellationToken cancellationToken = default);
+        Task<Ride> AcceptRideAsync(AcceptRideRequest acceptRideDTO, CancellationToken cancellationToken = default);
         /// <summary>
         /// Finishes ride in progress
         /// </summary>

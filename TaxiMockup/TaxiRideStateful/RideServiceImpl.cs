@@ -127,6 +127,7 @@ namespace TaxiRideData
             {
                 Id = Guid.NewGuid(),
                 PassengerId = proposedRide.PassengerId,
+                PassengerName = proposedRide.PassengerName,
                 StartDestination = proposedRide.StartDestination,
                 EndDestination = proposedRide.EndDestination,
                 Price = proposedRide.Price,
@@ -144,7 +145,7 @@ namespace TaxiRideData
             await QueueDataForLaterProcessingAsync(newRide, cancellationToken);
             return newRide.Id;
         }
-        public async Task AcceptRideAsync(AcceptRideRequest acceptRideDTO, CancellationToken cancellationToken)
+        public async Task<Ride> AcceptRideAsync(AcceptRideRequest acceptRideDTO, CancellationToken cancellationToken)
         {
             if (acceptRideDTO == null)
             {
@@ -176,6 +177,7 @@ namespace TaxiRideData
                 }
             }
             await QueueDataForLaterProcessingAsync(acceptedRide, cancellationToken);
+            return acceptedRide;
         }
         public async Task FinishRideAsync(FinishedRideRequest finishedRideDTO, CancellationToken cancellationToken)
         {

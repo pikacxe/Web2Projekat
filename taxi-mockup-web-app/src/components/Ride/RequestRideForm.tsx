@@ -11,16 +11,20 @@ import rideService from "../../services/RideService";
 import { useAuth } from "../../hooks/useAuth";
 import { ProposedRideRequest } from "../../models/Ride/RideModel";
 import { useAlert } from "../../hooks/useAlert";
+import { useSignalR } from "../../hooks/useSignalR";
 
 export const RequestRideForm = () => {
   const user = useAuth().user;
+  const { connection } = useSignalR();
   let defaultRequest: ProposedRideRequest = {
     passengerId: user?.userId as string,
     driverETA: 0,
     endDestination: "",
     startDestination: "",
     price: 0,
-    estRideDuraiton: 0,
+    estRideDuration: 0,
+    passengerName: user?.username as string,
+    connectionId: connection?.connectionId ?? "",
   };
   const alert = useAlert();
   const [rideRequest, setRideRequest] =
@@ -28,9 +32,10 @@ export const RequestRideForm = () => {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
-    rideRequest.driverETA = generateRandomNumber(1, 40);
+    rideRequest.driverETA = 0;
     rideRequest.price = generateRandomNumber(1, 300);
-    rideRequest.estRideDuraiton = generateRandomNumber(1, 20);
+    rideRequest.estRideDuration = generateRandomNumber(1, 60);
+    rideRequest.connectionId = connection?.connectionId as string;
     rideService.requestRide(user?.token as string, rideRequest).then((res) => {
       if (res) {
         alert.showAlert("Ride request sent", "success");
@@ -47,7 +52,7 @@ export const RequestRideForm = () => {
   function generateRandomNumber(min: number, max: number): number {
     min = Math.ceil(min);
     max = Math.floor(max);
-    return Math.round((Math.random() * (max - min + 1) + min) * 100) / 100;
+    return Math.round(Math.random() * (max - min + 1) + min);
   }
 
   function handleChange(
@@ -68,7 +73,7 @@ export const RequestRideForm = () => {
     <form onSubmit={handleSubmit}>
       <Typography variant="h4">Request new ride</Typography>
       <Divider />
-      <Stack direction="row" alignContent="center" gap={2} padding="2rem 1rem">
+      <Stack direction="row" alignContent="center" gap={2} padding="1rem">
         <FormControl>
           <TextField
             name="startDestination"

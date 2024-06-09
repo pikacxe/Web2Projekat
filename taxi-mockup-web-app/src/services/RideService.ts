@@ -1,6 +1,7 @@
 import axios from "axios";
 import {
   AcceptRideRequest,
+  AvailableRideRespone,
   CompletedRideResponse,
   FinishRideRequest,
   ProposedRideRequest,
@@ -33,12 +34,12 @@ const getAllRides = async (
 // GET /rides/pending
 const getAllPending = async (
   token: string
-): Promise<Array<CompletedRideResponse>> => {
+): Promise<Array<AvailableRideRespone>> => {
   try {
     const headers = { Authorization: `Bearer ${token}` };
     const res = await client.get("pending", { headers });
     if (res.status === 200) {
-      return res.data as Array<CompletedRideResponse>;
+      return res.data as Array<AvailableRideRespone>;
     } else {
       return [];
     }

@@ -9,11 +9,16 @@ import { useEffect, useState } from "react";
 import rideService from "../../services/RideService";
 import { CompletedRideResponse } from "../../models/Ride/RideModel";
 import { useAlert } from "../../hooks/useAlert";
+import { useSignalR } from "../../hooks/useSignalR";
+import { HubConnectionState } from "@microsoft/signalr";
+import { useNavigate } from "react-router-dom";
 
 export const UserDashboard = () => {
   const { userId, token } = useAuth().user as AuthResponse;
   const [rides, setRides] = useState<CompletedRideResponse[]>([]);
   const alert = useAlert();
+  const { connection } = useSignalR();
+  const navigate = useNavigate();
 
   useEffect(() => {
     rideService
@@ -26,14 +31,27 @@ export const UserDashboard = () => {
         console.log(err);
       });
   }, [token, userId, alert]);
-
+  if (connection?.state === HubConnectionState.Disconnected) {
+    connection
+      ?.start()
+      .then(() => {
+        console.log("Connected now");
+        connection?.on("rideAccepted", (data) => {
+          console.log(data);
+          navigate("/ride-in-progress", { state: data });
+        });
+      })
+      .catch((err) => {
+        alert.showAlert("Could now connect to server", "warning");
+      });
+  }
   return (
     <Box sx={{ height: "96vh", width: "100%" }}>
       <Grid container height="100%" flexGrow={1}>
         <Grid xs={12} sm={12} md={12} lg={4} xl={3}>
           <ProfileView />
         </Grid>
-        <Grid xs={12} sm={12} md={12} lg={8} xl={9}>
+        <Grid xs={12} sm={12} md={12} lg={8} xl={9} height="100%">
           <Paper variant="outlined" sx={{ padding: "2rem", height: "20%" }}>
             <RequestRideForm />
           </Paper>

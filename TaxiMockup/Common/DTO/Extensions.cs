@@ -20,7 +20,8 @@ namespace Common.DTO
         {
             RideId = ride.Id,
             StartDestination = ride.StartDestination,
-            EndDestination = ride.EndDestination
+            EndDestination = ride.EndDestination,
+            PassengerName = ride.PassengerName
         };
 
         public static UserInfo AsInfoDTO(this User user) => new UserInfo

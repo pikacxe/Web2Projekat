@@ -35,9 +35,13 @@ namespace Common.DTO
         [Required(ErrorMessage = "Driver ETA is required")]
         [Range(0, double.MaxValue)]
         public double DriverETA { get; set; }
+        [DataMember]
+        public string PassengerName { get; set; } = string.Empty;
+        [DataMember]
+        public string ConnectionId { get; set; } = string.Empty;
     }
     [DataContract]
-    public record AvailableRideResponse
+    public class AvailableRideResponse
     {
         [DataMember]
         public Guid RideId { get; set; }
@@ -45,9 +49,11 @@ namespace Common.DTO
         public string? StartDestination { get; set; }
         [DataMember]
         public string? EndDestination { get; set; }
+        [DataMember]
+        public string PassengerName { get; set; } = string.Empty;
     }
     [DataContract]
-    public record CompletedRideInfoResponse
+    public class CompletedRideInfoResponse
     {
         [DataMember]
         public Guid RideId { get; set; }
@@ -68,7 +74,7 @@ namespace Common.DTO
     }
 
     [DataContract]
-    public record AcceptRideRequest
+    public class AcceptRideRequest
     {
         [DataMember]
         [Required(ErrorMessage = "Ride id is required")]
@@ -78,20 +84,35 @@ namespace Common.DTO
         public Guid DriverID { get; set; }
         [DataMember]
         [Required(ErrorMessage = "Driver ETA is required")]
-        [Range(0, double.MaxValue,ErrorMessage ="Driver ETA must be greate than zero")]
+        [Range(0, double.MaxValue, ErrorMessage = "Driver ETA must be greate than zero")]
         public double DriverETA { get; set; }
+        [DataMember]
+        public string ConnectionId { get; set; } = string.Empty;
     }
     [DataContract]
-    public record FinishedRideRequest
+    public class FinishedRideRequest
     {
         [DataMember]
-        [Required(ErrorMessage ="Ride id is required")]
+        [Required(ErrorMessage = "Ride id is required")]
         public Guid RideId { get; set; }
         [DataMember]
         [Required(ErrorMessage = "Passenger id is required")]
         public Guid PassengerId { get; set; }
         [DataMember]
-        [Range(0,10,ErrorMessage ="Rating must be on a scale 1 to 10")]
+        [Range(1, 10, ErrorMessage = "Rating must be on a scale 1 to 10")]
         public int Rating { get; set; }
+    }
+
+    [DataContract]
+    public class RideInProgressInfo
+    {
+        [DataMember]
+        public Guid RideId { get; set; }
+        [DataMember]
+        public Guid PassengerId { get; set; }
+        [DataMember]
+        public double DriverETA { get; set; }
+        [DataMember]
+        public double RideDuration { get; set; }
     }
 }
