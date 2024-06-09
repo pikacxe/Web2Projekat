@@ -9,6 +9,7 @@ using Microsoft.ServiceFabric.Services.Remoting;
 using TaxiUserData.Settings;
 using TaxiUserData.Helpers;
 using System.Linq;
+using BC=BCrypt.Net.BCrypt;
 
 [assembly: FabricTransportServiceRemotingProvider(RemotingListenerVersion = RemotingListenerVersion.V2_1, RemotingClientVersion = RemotingClientVersion.V2_1)]
 
@@ -46,11 +47,11 @@ namespace TaxiUserData
                 {
                     existingUser = user.Value;
                     // TODO: Better password validation with hashing (bcrypt?)
-                    if (existingUser.Password != userPasswordChangeDTO.OldPassword)
+                    if (!BC.Verify(userPasswordChangeDTO.OldPassword,existingUser.Password))
                     {
                         throw new ArgumentException("Incorrect old password!");
                     }
-                    existingUser.Password = userPasswordChangeDTO.NewPassword;
+                    existingUser.Password = BC.HashPassword(userPasswordChangeDTO.NewPassword);
                     existingUser._UpdatedAt = DateTimeOffset.UtcNow;
                     await users.AddOrUpdateAsync(tx, existingUser.Id, existingUser, (key, value) => existingUser, timeout, cancellationToken);
                     await tx.CommitAsync();
@@ -79,7 +80,7 @@ namespace TaxiUserData
                     if (currentUser.Email == userLoginDTO.Email)
                     {
                         // TODO update check to Bcrypt validate
-                        if (currentUser.Password == userLoginDTO.Password)
+                        if (BC.Verify(userLoginDTO.Password,currentUser.Password))
                         {
                             AuthResponse authResponse = new AuthResponse()
                             {
@@ -189,7 +190,7 @@ namespace TaxiUserData
                     Id = Guid.NewGuid(),
                     Username = registerUserDTO.Username,
                     Email = registerUserDTO.Email,
-                    Password = registerUserDTO.Password,
+                    Password = BC.HashPassword(registerUserDTO.Password),
                     Address = registerUserDTO.Address,
                     DateOfBirth = registerUserDTO.DateOfBirth,
                     Fullname = registerUserDTO.Fullname,

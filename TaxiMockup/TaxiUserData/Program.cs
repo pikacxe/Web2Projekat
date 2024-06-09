@@ -53,7 +53,7 @@ namespace TaxiUserData
 
         private static async Task EnsureAdminCreation(IRepository<User> repo)
         {
-            User? exists = await repo.GetAsync(u => u.UserType == Common.UserType.Admin) as User;
+            User? exists = await repo.GetAsync(u => u.UserType == UserType.Admin) as User;
             if (exists == null)
             {
                 User admin = new User()
@@ -61,7 +61,7 @@ namespace TaxiUserData
                     Id = new Guid("d725738c-70ea-4573-9944-fad093c1e8e0"),
                     Email = "admin@admin.com",
                     Username = "admin",
-                    Password = "password",
+                    Password = BCrypt.Net.BCrypt.HashPassword("password"),
                     UserType = UserType.Admin,
                     _CreatedAt = DateTime.Now,
                 };

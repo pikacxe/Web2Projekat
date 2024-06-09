@@ -131,7 +131,7 @@ Mock uber like app with microservice architecture where users can request a ride
     - [ ] add service partition resolver 
 - [x] add mailing upon user verification
 - [x] update database connection to be more secure
-- [ ] add password hashing (currently disabled for easier debugging)
+- [x] add password hashing
 - [x] add CancelationTokens to repository methods
 - [x] add app settings validation
 - [x] update data service to check for edge cases
@@ -139,4 +139,3 @@ Mock uber like app with microservice architecture where users can request a ride
     - [x] only users of type user can request/finish rides
     - [x] only users of type driver can accept rides
     - [x] check for id consistency when updating user or changing password (users can only change own data)
-- [ ] add method that encapsulates service event message creation

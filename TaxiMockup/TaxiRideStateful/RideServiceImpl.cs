@@ -166,7 +166,7 @@ namespace TaxiRideData
                 {
                     acceptedRide = ride.Value;
                     acceptedRide.DriverId = acceptRideDTO.DriverID;
-                    acceptedRide.DriverETA = acceptedRide.DriverETA;
+                    acceptedRide.DriverETA = acceptRideDTO.DriverETA;
                     acceptedRide.RideState = RideState.InProgress;
                     await rides.AddOrUpdateAsync(tx, acceptedRide.Id, acceptedRide, (r1, r2) => r2, timeout, cancellationToken);
                     await tx.CommitAsync();

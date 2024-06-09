@@ -20,6 +20,7 @@ import { useAlert } from "../../hooks/useAlert";
 
 export const ProfileView = () => {
   const currentUser = useAuth().user;
+  const { logout } = useAuth();
   const [profile, setProfile] = useState<UserInfo | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ export const ProfileView = () => {
         .catch((err) => {
           if (err instanceof AxiosError) {
             if (err.response?.status === 401) {
-              navigate("/");
+              logout();
             } else {
               alert.showAlert(err.response?.data, "error");
             }
@@ -44,7 +45,7 @@ export const ProfileView = () => {
     } else {
       console.log("Error while getting user profile");
     }
-  }, [currentUser, alert, navigate]);
+  }, [currentUser, alert, logout]);
 
   function handleEditProfile(event: MouseEvent<HTMLButtonElement>): void {
     navigate(`${location.pathname}/${currentUser?.userId}`);
