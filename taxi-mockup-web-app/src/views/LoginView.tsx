@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { LoginForm } from "../components/LoginForm";
 import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
-import { RegisterRequest } from "../models/User/UserModel";
 import authService from "../services/AuthService";
 import { useAlert } from "../hooks/useAlert";
 import { AxiosError } from "axios";

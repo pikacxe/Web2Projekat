@@ -127,7 +127,7 @@ namespace TaxiUserData
                 while (await enumerator.MoveNextAsync(cancellationToken))
                 {
                     var currentUser = enumerator.Current.Value;
-                    if (currentUser.UserState == UserState.Unverified)
+                    if (currentUser.UserType == UserType.Driver)
                     {
                         result.Add(currentUser.AsInfoDTO());
                     }

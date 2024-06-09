@@ -27,6 +27,8 @@ import {
   DialogActions,
   Button,
 } from "@mui/material";
+import { AxiosError } from "axios";
+import { useAlert } from "../../hooks/useAlert";
 
 interface UserGridProps {
   users: Array<UserInfo>;
@@ -38,6 +40,7 @@ export const UserDataGrid = ({ users, actionsType }: UserGridProps) => {
   const [openDialog, setOpenDialog] = useState(false);
   const token = useAuth().user?.token as string;
   const [idToDelete, setIdToDelete] = useState("");
+  const alert = useAlert();
 
   const deleteUserRow = (id: string) => {
     userService
@@ -58,11 +61,20 @@ export const UserDataGrid = ({ users, actionsType }: UserGridProps) => {
         .verifyDriver(token, id)
         .then((success) => {
           if (success) {
-            setRows((rows) => rows.filter((row) => row.id !== id));
+            setRows((rows) =>
+              rows.map((row) =>
+                row.id === id ? { ...row, userState: "Verified" } : row
+              )
+            );
           }
         })
         .catch((err) => {
           console.log(err);
+          if (err instanceof AxiosError) {
+            alert.showAlert(err.response?.data, "warning");
+          } else {
+            alert.showAlert(err.message, "error");
+          }
         });
     },
     [token]
@@ -120,6 +132,7 @@ export const UserDataGrid = ({ users, actionsType }: UserGridProps) => {
           label="Verify"
           color="success"
           onClick={verifyUserRow(params.row.id)}
+          disabled={params.row.userState === "Verified"}
         />,
         <GridActionsCellItem
           icon={<BlockIcon />}
